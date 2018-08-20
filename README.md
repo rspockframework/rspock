@@ -73,6 +73,7 @@ MyTest = Class.new(Minitest::Test) do
     actual == 3
   end
 end
+```
 
 ### Feature Methods
 
