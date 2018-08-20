@@ -59,12 +59,20 @@ module RSpock
       end
 
       def build_test_method_def(node)
-        ast = s(:block,
-          TestMethodDefTransformation.new.run(node.children[0]),
-          node.children[1],
-          build_test_body
-        )
-        HeaderNodeTransformation.new(where_block.header).process(ast) if where_block
+        if where_block
+          ast = s(:block,
+            TestMethodDefTransformation.new.run(node.children[0]),
+            node.children[1],
+            build_test_body
+          )
+          HeaderNodeTransformation.new(where_block.header).process(ast)
+        else
+          s(:block,
+            node.children[0],
+            node.children[1],
+            build_test_body
+          )
+        end
       end
 
       def first_scope
