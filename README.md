@@ -20,6 +20,12 @@ Or install it yourself as:
 
     $ gem install rspock
 
+### Rails
+
+If you are using Rails, it is necessary to add a filter to *Rails.backtrace_cleaner* for source mapping to work, so that you get proper line numbers in stacktraces:
+
+    $ rails g rspock:install
+
 ## Usage
 
 TODO: Write usage instructions here
