@@ -1,8 +1,21 @@
-# Rspock
+# RSpock
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/rspock`. To experiment with that code, run `bin/console` for an interactive prompt.
+RSpock is a testing and specification framework built on top of Minitest. It intends to bring productivity back in the hands of developers with its incredibly simple yet highly expressive specification language.
 
-TODO: Delete this and the text above, and describe your gem
+Note: RSpock is heavily inspired by Spock for the Groovy programming language.
+
+## Goals
+
+* High readability, expressiveness, maintainability and productivity: Take back your very precious developer time!
+* Encourage code reuse through expressive data-driven tests
+
+## Features
+
+* BDD-style code blocks: Given, When, Then, Cleanup, Where
+* Data-driven testing with incredibly expressive table-based Where blocks
+* Expressive assertions: Use familiar comparison operators `==` and `!=` for assertions!
+* (Planned) BDD-style custom reporter that outputs information from Given, When, Then and Cleanup blocks
+* (Planned) RSpock syntax pre-processor
 
 ## Installation
 
@@ -46,4 +59,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the Rspock project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/rspock/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the RSpock project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/rspock/blob/master/CODE_OF_CONDUCT.md).
