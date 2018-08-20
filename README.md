@@ -22,7 +22,7 @@ Or install it yourself as:
 
 ### Rails
 
-If you are using Rails, it is necessary to add a filter to *Rails.backtrace_cleaner* for source mapping to work, so that you get proper line numbers in Minitest backtraces:
+If you are using Rails, it is necessary to add a filter to *Rails.backtrace_cleaner* for source mapping to work, so that you get proper line numbers in Minitest backtraces. For your convenience, we've built a Rails Generator just for that:
 
     $ rails g rspock:install
 
