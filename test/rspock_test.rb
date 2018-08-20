@@ -1,11 +1,9 @@
 require "test_helper"
 
-class RspockTest < Minitest::Test
-  def test_that_it_has_a_version_number
-    refute_nil ::Rspock::VERSION
-  end
+class RSpockTest < Minitest::Test
+  extend RSpock::Declarative
 
-  def test_it_does_something_useful
-    assert false
+  test "that it has a version number" do
+    refute_nil ::RSpock::VERSION
   end
 end
