@@ -249,36 +249,29 @@ module RSpock
         end
       end
 
-      test "111asdf2" do
+      test "test without where block" do
         source = <<~HEREDOC
-          test "Adding \#{a} and \#{b} results in \#{c}" do
+          test "Adding 1 and 2 results in 3" do
             When "adding a and b together"
-            actual = a + b
+            actual = 1 + 2
 
-            Then "we get the expected result c"
-            actual == c
-
-            Where
-            a | b | c
-            1 | 2 | 3
-            4 | 5 | 9 + 1
+            Then "we get the expected result"
+            actual == 3
           end
         HEREDOC
 
         expected = <<~HEREDOC
           begin
-            [[1, 2, 3], [4, 5, (9 + 1)]].each.with_index do |(a, b, c), test_index|
-              test(\"\#{test_index}\#{\"Adding \"}\#{a}\#{\" and \"}\#{b}\#{\" results in \"}\#{c}\") do
+            test(\"Adding 1 and 2 results in 3\") do
+              begin
                 begin
-                  begin
-                    actual = (a + b)
-                    assert_equal(c, actual)
-                  ensure
-                  end
-                rescue StandardError => e
-                  ::RSpock::Backtrace.new.associate_to_exception(e)
-                  raise
+                  actual = (1 + 2)
+                  assert_equal(3, actual)
+                ensure
                 end
+              rescue StandardError => e
+                ::RSpock::Backtrace.new.associate_to_exception(e)
+                raise
               end
             end
           rescue StandardError => e
@@ -288,60 +281,6 @@ module RSpock
         HEREDOC
 
         assert_equal strip_end_line(expected), transform(source)
-      end
-
-      # test "222asdf2" do
-      #   source = <<~HEREDOC
-      #     test "Adding \#{a} and \#{b} results in \#{c}" do
-      #       When "adding a and b together"
-      #       actual = a + b
-      #
-      #       Then "we get the expected result c"
-      #       assert_equal c, actual
-      #       actual == c
-      #       actual != b
-      #
-      #       Cleanup "cleanup"
-      #
-      #       Where
-      #       a | b | c
-      #       1 | 2 | 3
-      #       4 | 5 | 9
-      #     end
-      #   HEREDOC
-      #
-      #   out = transform(source)
-      #   binding.pry
-      # end
-
-      # test "333asdf2" do
-      #   binding.pry
-      #   source = <<~HEREDOC
-      #     def show(arg1 = (Component::Schema), arg2 = (SchemaClass.new < Component::Schema), arg3 = SchemaClass)
-      #       # ... code here
-      #     end
-      #   HEREDOC
-      #
-      #   expected = <<~HEREDOC
-      #     def show(arg1, arg2 = SchemaClass.new, arg3 = SchemaClass)
-      #       raise TypeError unless arg1.is_a?(Component::Schema)
-      #       raise TypeError unless arg2.is_a?(Component::Schema)
-      #
-      #       # ... code here
-      #     end
-      #   HEREDOC
-      #
-      #   out = transform(source)
-      # end
-      #
-      test "1234" do
-        source = <<~HEREDOC
-          @RSpock
-          class Potato
-          end
-        HEREDOC
-
-        out = transform(source)
       end
 
       private
