@@ -1,0 +1,40 @@
+digraph G {
+    rankdir=LR;
+    fontname="sans-serif";
+    penwidth="0.1";
+    edge [comment="Wildcard edge", 
+          fontname="sans-serif", 
+          fontsize=10, 
+          colorscheme="blues3", 
+          color=2, 
+          fontcolor=3];
+    node [fontname="serif", 
+          fontsize=13, 
+          fillcolor="1", 
+          colorscheme="spectral9", 
+          color="9", 
+          fontcolor="10", 
+          style="filled"];
+    "Start" [style="dashed"];
+    "Given" [fillcolor="8"];
+    "When" [fillcolor="6"];
+    "Then" [fillcolor="3"];
+    "Cleanup" [fillcolor="1"];
+    "Where" [fillcolor="9"];
+    "End" [style="dashed"];
+    "Start" -> "Given";
+    "Start" -> "When";
+    "Start" -> "Then";
+    "Given" -> "When";
+    "Given" -> "Cleanup";
+    "Given" -> "Where";
+    "Given" -> "End";
+    "When" -> "Then";
+    "Then" -> "Then";
+    "Then" -> "Cleanup";
+    "Then" -> "Where";
+    "Then" -> "End";
+    "Cleanup" -> "Where";
+    "Cleanup" -> "End";
+    "Where" -> "End";
+}
