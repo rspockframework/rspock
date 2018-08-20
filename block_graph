@@ -26,9 +26,7 @@ digraph G {
     "Start" -> "When";
     "Start" -> "Then";
     "Given" -> "When";
-    "Given" -> "Cleanup";
-    "Given" -> "Where";
-    "Given" -> "End";
+    "Given" -> "Then";
     "When" -> "Then";
     "Then" -> "Then";
     "Then" -> "Cleanup";

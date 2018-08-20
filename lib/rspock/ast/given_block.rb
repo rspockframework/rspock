@@ -9,7 +9,7 @@ module RSpock
       end
 
       def successors
-        @successors ||= [:When, :Cleanup, :Where, :End].freeze
+        @successors ||= [:When, :Then].freeze
       end
     end
   end
