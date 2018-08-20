@@ -46,6 +46,7 @@ If you are using Rails, it is necessary to add a filter to *Rails.backtrace_clea
 Getting started using RSpock is extremely easy!
 
 ```ruby
+require 'test_helper'
 require 'rspock'
 
 MyTest = Class.new(Minitest::Test) do
@@ -60,6 +61,7 @@ Note: The dynamic `Class.new` is required and the `break` in `include RSpock; br
 ### Example With Feature Method and Code Blocks
 
 ```ruby
+require 'test_helper'
 require 'rspock'
 
 MyTest = Class.new(Minitest::Test) do
