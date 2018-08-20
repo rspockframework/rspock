@@ -56,7 +56,7 @@ MyTest = Class.new(Minitest::Test) do
 end
 ```
 
-Note: The dynamic `Class.new` is required and the `break` in `include RSpock; break` is strongly recommended. See [here](#runtime-rspock-syntax-evaluation) for more info.
+Note: The dynamic `Class.new` and `include RSpock; break` are strongly recommended. See [here](#runtime-rspock-syntax-evaluation) for more info.
 
 ### Example With Feature Method and Code Blocks
 
