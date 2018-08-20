@@ -55,7 +55,24 @@ MyTest = Class.new(Minitest::Test) do
 end
 ```
 
-Note: The dynamic `Class.new` is required and the `break` in `include RSpock; break` is strongly recommended. See [here](###Runtime-RSpock-Syntax-Evaluation) to know more.
+Note: The dynamic `Class.new` is required and the `break` in `include RSpock; break` is strongly recommended. See [here](#runtime-rspock-syntax-evaluation) to know more.
+
+### Example With Feature Method and Code Blocks
+
+```ruby
+require 'rspock'
+
+MyTest = Class.new(Minitest::Test) do
+  include RSpock; break
+
+  test "adding 1 and 2 results in 3" do
+    When "Adding 1 and 2"
+    actual = 1 + 2
+
+    Then "We get the expected result 3"
+    actual == 3
+  end
+end
 
 ### Feature Methods
 
@@ -155,13 +172,14 @@ test "Adding #{a} and #{b} results in #{c}" do
   0  | 1  | 1
   1  | 0  | 1
   1  | 1  | 2
+end
 ```
 
 The first row in the Where block is considered the Header. The names of columns will expose a local variable of the same name in the scope of the Feature Method. The header column names have the same constraints as method names in Ruby. Each other row defines one test case that will be generated, binding each column's data to the appropriate variable.
 
 This effectively creates one version of the Feature Method for each data row. Note how we've listed test cases as if this was a truth table, ordering them by boolean increment. This makes it very easy to ensure all cases have been covered.
 
-Note: Although the Where block is declared last, it is evaluated first. This means that it cannot variables previously defined in the test method. It is evaluated in Class scope, so it is possible to use generators or methods for column values, provided it is defined in class scope, not instance.
+Note: Although the Where block is declared last, it is evaluated first. This means that it cannot access local variables previously defined in the test method. It is evaluated in Class scope, so it is possible to use generators or methods for column values, provided they are class methods, not instance methods.
 
 ##### Test Name Interpolation
 
@@ -169,7 +187,7 @@ You might have noticed above that the test name contains interpolations, that's 
 
 ## More info
 
-### Runtime RSPock Syntax Evaluation
+### Runtime RSpock Syntax Evaluation
 
 ```ruby
 MyTest = Class.new(Minitest::Test) do
@@ -189,7 +207,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/rspock. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/jpduchesne/rspock. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## License
 
@@ -197,4 +215,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the RSpock project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/rspock/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the RSpock project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/jpduchesne/rspock/blob/master/CODE_OF_CONDUCT.md).
