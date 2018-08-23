@@ -19,6 +19,7 @@ require "minitest/hell" if ENV["MT_HELL"]
 
 # Minitest Reporters
 require "minitest/reporters"
-Minitest::Reporters.use!([Minitest::Reporters::ProgressReporter.new])
+require "minitest/reporters/rake_rerun_reporter"
+Minitest::Reporters.use!([Minitest::Reporters::RakeRerunReporter.new])
 
 Minitest.autorun
