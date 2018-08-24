@@ -139,11 +139,11 @@ cart.products.first == product
 
 The Then block describes the response from the stimulus. Any comparison done in the Then block is transformed to assert_equal / refute_equal under the hood. By convention, the LHS operand is considered the actual value, while the RHS operand is considered the expected value.
 
-### Expect Block
+#### Expect Block
 
 The Expect block is useful when expressing the stimulus and the response in one statement is more natural. For example, let's compare two equivalent ways of describing some behaviour:
 
-#### When + Then
+##### When + Then
 ```ruby
 When "Calling #abs on a negative number"
 actual = -2.abs
@@ -152,9 +152,9 @@ Then "Value is positive"
 actual == 2
 ```
 
-#### Using Expect
+##### Using Expect
 ```ruby
-Expect
+Expect "absolute of -2 is 2"
 -2.abs == 2
 ```
 
