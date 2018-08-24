@@ -95,13 +95,14 @@ The first and last steps are optional, however the stimulus and response phases 
 
 ### Code Blocks
 
-| Blocks  | Phases   |
-| ------- | -------- |
-| Given   | Setup    |
-| When    | Stimulus |
-| Then    | Response |
-| Cleanup | Cleanup  |
-| Where   | Repeat   |
+| Blocks  | Phases              |
+| ------- | ------------------- |
+| Given   | Setup               |
+| When    | Stimulus            |
+| Then    | Response            |
+| Expect  | Stimulus + Response |
+| Cleanup | Cleanup             |
+| Where   | Repeat              |
 
 RSpock has support for each conceptual phase of a feature method. As such, feature methods are structured into Code Blocks, each representing a phase.
 
@@ -137,6 +138,27 @@ cart.products.first == product
 ```
 
 The Then block describes the response from the stimulus. Any comparison done in the Then block is transformed to assert_equal / refute_equal under the hood. By convention, the LHS operand is considered the actual value, while the RHS operand is considered the expected value.
+
+### Expect Block
+
+The Expect block is useful when expressing the stimulus and the response in one statement is more natural. For example, let's compare two equivalent ways of describing some behaviour:
+
+#### When + Then
+```ruby
+When "Calling #abs on a negative number"
+actual = -2.abs
+
+Then "Value is positive"
+actual == 2
+```
+
+#### Using Expect
+```ruby
+Expect
+-2.abs == 2
+```
+
+A good rule of thumb is using When + Then blocks to describe methods with side-effects and Expect blocks to describe purely functional methods.
 
 #### Cleanup Block
 

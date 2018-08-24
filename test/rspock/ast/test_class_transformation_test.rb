@@ -26,7 +26,7 @@ module RSpock
           transform(source)
         end
 
-        assert_equal "Test method must start with one of the following Blocks: #{[:Given, :When, :Then]}", error.message
+        assert_equal "Test method must start with one of the following Blocks: #{[:Given, :When, :Expect]}", error.message
       end
 
       test "first node cannot be regular code" do
@@ -40,7 +40,7 @@ module RSpock
           transform(source)
         end
 
-        assert_equal "Test method must start with one of the following Blocks: #{[:Given, :When, :Then]}", error.message
+        assert_equal "Test method must start with one of the following Blocks: #{[:Given, :When, :Expect]}", error.message
       end
 
       test "first node cannot be a non-starting block" do
@@ -54,23 +54,23 @@ module RSpock
           transform(source)
         end
 
-        assert_equal "Test method must start with one of the following Blocks: #{[:Given, :When, :Then]}", error.message
+        assert_equal "Test method must start with one of the following Blocks: #{[:Given, :When, :Expect]}", error.message
       end
 
-      test "then block can be followed by nothing" do
+      test "expect block can be followed by nothing" do
         source = <<~HEREDOC
           test "Adding \#{a} and \#{b} results in \#{c}" do
-            Then "do stuff"
+            Expect "do stuff"
           end
         HEREDOC
 
         transform(source)
       end
 
-      test "then block cannot be followed by a cleanup block" do
+      test "expect block can be followed by a cleanup block" do
         source = <<~HEREDOC
           test "Adding \#{a} and \#{b} results in \#{c}" do
-            Then "do something"
+            Expect "do something"
             Cleanup "cleanup stuff"
           end
         HEREDOC

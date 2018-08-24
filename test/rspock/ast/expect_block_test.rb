@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 require 'test_helper'
-require 'rspock/ast/then_block'
+require 'rspock/ast/expect_block'
 
 module RSpock
   module AST
-    class ThenBlockTest < Minitest::Test
+    class ExpectBlockTest < Minitest::Test
       extend RSpock::Declarative
       include RSpock::AST::TransformationHelper
 
       def setup
-        @block = RSpock::AST::ThenBlock.new(nil)
+        @block = RSpock::AST::ExpectBlock.new(nil)
       end
 
       test "#successors returns the correct successors" do
@@ -21,7 +21,7 @@ module RSpock
       end
 
       test "#type is :Then" do
-        assert_equal :Then, @block.type
+        assert_equal :Expect, @block.type
       end
 
       test "#to_children_ast returns transformed children when comparing with == or !=" do

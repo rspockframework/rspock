@@ -134,7 +134,7 @@ module RSpock
         ast = s(:kwbegin,
           s(:ensure,
             s(:begin,
-              *@blocks.select { |block| [:Given, :When, :Then].include?(block.type) }
+              *@blocks.select { |block| [:Given, :When, :Then, :Expect].include?(block.type) }
                 .map { |block| block.to_children_ast }.flatten,
               ),
             *@blocks.select { |block| block.type == :Cleanup }.first&.to_children_ast

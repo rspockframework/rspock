@@ -4,6 +4,7 @@ require 'rspock/ast/start_block'
 require 'rspock/ast/given_block'
 require 'rspock/ast/when_block'
 require 'rspock/ast/then_block'
+require 'rspock/ast/expect_block'
 require 'rspock/ast/cleanup_block'
 require 'rspock/ast/where_block'
 require 'rspock/ast/end_block'
@@ -18,6 +19,7 @@ module RSpock
         Given: RSpock::AST::GivenBlock,
         When: RSpock::AST::WhenBlock,
         Then: RSpock::AST::ThenBlock,
+        Expect: RSpock::AST::ExpectBlock,
         Cleanup: RSpock::AST::CleanupBlock,
         Where: RSpock::AST::WhereBlock,
       }
@@ -83,7 +85,7 @@ module RSpock
           end
 
           children = node.children.reject.each_with_index { |node, index| indexes_to_reject.include?(index) }
-          node.updated(nil, children.map { |node| process(node) })
+          node.updated(nil, children.map { |node| process(node) }.unshift(EXTEND_RSPOCK_DECLARATIVE))
         else
           node.updated(nil, process_all(node))
         end

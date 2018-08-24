@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 require 'test_helper'
-require 'rspock/ast/then_block_transformation'
+require 'rspock/ast/comparison_to_assertion_transformation'
 
 module RSpock
   module AST
-    class ThenBlockTransformationTest < Minitest::Test
+    class ComparisonToAssertionTransformationTest < Minitest::Test
       extend RSpock::Declarative
       include RSpock::AST::TransformationHelper
 
       def setup
-        @transformation = RSpock::AST::ThenBlockTransformation.new
+        @transformation = RSpock::AST::ComparisonToAssertionTransformation.new
         @equal_ast = s(:send, 1, :==, 2)
         @not_equal_ast = s(:send, 1, :!=, 2)
       end

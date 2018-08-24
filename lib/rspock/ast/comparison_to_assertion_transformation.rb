@@ -3,13 +3,7 @@ require 'rspock/ast/abstract_transformation'
 
 module RSpock
   module AST
-    class ThenBlockTransformation < AbstractTransformation
-      def process(node)
-        return node unless node.is_a?(Parser::AST::Node)
-
-        super
-      end
-
+    class ComparisonToAssertionTransformation < AbstractTransformation
       def on_send(node)
         if node.children.count == 3 && node.children[1] == :==
           transform_to_assert_equal(node.children[0], node.children[2])

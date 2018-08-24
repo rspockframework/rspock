@@ -4,9 +4,9 @@ require 'rspock/ast/comparison_to_assertion_transformation'
 
 module RSpock
   module AST
-    class ThenBlock < Block
+    class ExpectBlock < Block
       def initialize(node)
-        super(:Then, node)
+        super(:Expect, node)
       end
 
       def successors

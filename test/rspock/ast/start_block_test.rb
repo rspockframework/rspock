@@ -12,7 +12,7 @@ module RSpock
       end
 
       test "#successors returns the correct successors" do
-        assert_equal [:Given, :When, :Then], @block.successors
+        assert_equal [:Given, :When, :Expect], @block.successors
       end
 
       test "#successors is frozen" do
