@@ -11,10 +11,10 @@ Note: RSpock is heavily inspired by Spock for the Groovy programming language.
 
 ## Features
 
-* BDD-style code blocks: Given, When, Then, Cleanup, Where
+* BDD-style code blocks: Given, When, Then, Expect, Cleanup, Where
 * Data-driven testing with incredibly expressive table-based Where blocks
 * Expressive assertions: Use familiar comparison operators `==` and `!=` for assertions!
-* (Planned) BDD-style custom reporter that outputs information from Given, When, Then and Cleanup blocks
+* (Planned) BDD-style custom reporter that outputs information from Code Blocks
 * (Planned) RSpock syntax pre-processor
 * (Planned) Capture all Then block violations
 * (Planned) Interaction-based testing, i.e. `1 * object.receive("message")` in Then blocks
