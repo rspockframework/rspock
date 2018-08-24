@@ -50,7 +50,10 @@ module RSpock
 
           node.updated(nil, children)
         else
-          process_rspock(node)
+          children = node.children.dup
+          children[2] = process_rspock(s(:begin, node.children[2]))
+
+          node.updated(nil, children)
         end
       end
 
@@ -75,7 +78,10 @@ module RSpock
 
           node.updated(nil, children)
         else
-          process_rspock(node)
+          children = node.children.dup
+          children[2] = process_rspock(s(:begin, node.children[2]))
+
+          node.updated(nil, children)
         end
       end
 
