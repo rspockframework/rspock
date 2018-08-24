@@ -3,13 +3,13 @@ require 'rspock/ast/abstract_transformation'
 
 module RSpock
   module AST
-    class HeaderNodeTransformation < AbstractTransformation
+    class HeaderNodesTransformation < AbstractTransformation
       def initialize(header)
         @header = header
       end
 
-      def process(node)
-        return node unless node.is_a?(Parser::AST::Node)
+      def run(node)
+        return node if @header.nil? || @header.empty?
 
         super
       end
