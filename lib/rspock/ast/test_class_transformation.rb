@@ -25,6 +25,7 @@ module RSpock
       }
 
       def initialize(start_block_class: StartBlock, end_block_class: EndBlock, source_map: DefaultSourceMap)
+        super()
         @start_block_class = start_block_class
         @source_map = source_map
         @end_block_class = end_block_class
@@ -96,7 +97,7 @@ module RSpock
           return node.updated(nil, process_all(node))
         end
 
-        TestMethodTransformation.new(@source_map, @start_block_class, @end_block_class).process(node)
+        TestMethodTransformation.new(@source_map, @start_block_class, @end_block_class).run(node)
       end
     end
   end

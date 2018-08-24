@@ -33,7 +33,7 @@ module RSpock
     def build_ast(source, transformation = nil)
       buffer = create_buffer(source)
       ast = parser.parse(buffer)
-      transformation&.process(ast) || ast
+      transformation&.run(ast) || ast
     end
 
     def create_buffer(source)
@@ -50,7 +50,7 @@ module RSpock
 
     def run_transformations(ast)
       @transformations.inject(ast) do |ast, transformation|
-        transformation.process(ast)
+        transformation.run(ast)
       end
     end
 

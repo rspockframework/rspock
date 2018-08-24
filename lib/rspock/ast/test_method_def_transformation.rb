@@ -25,7 +25,7 @@ module RSpock
       end
 
       def on_dstr(node)
-        TestMethodDstrTransformation.new.process(node)
+        TestMethodDstrTransformation.new.run(node)
       end
     end
   end

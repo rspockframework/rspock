@@ -14,14 +14,14 @@ module RSpock
         @not_equal_ast = s(:send, 1, :!=, 2)
       end
 
-      test "#process returns nil when passing nil" do
-        actual = @transformation.process(nil)
+      test "#run returns nil when passing nil" do
+        actual = @transformation.run(nil)
 
         assert_nil actual
       end
 
-      test "#process returns input when not an AST node" do
-        actual = @transformation.process(123)
+      test "#run returns input when not an AST node" do
+        actual = @transformation.run(123)
 
         assert_equal 123, actual
       end

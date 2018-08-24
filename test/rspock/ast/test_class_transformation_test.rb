@@ -160,7 +160,7 @@ module RSpock
         end
       end
 
-      test "#process removes include and break when using Class.new" do
+      test "#run removes include and break when using Class.new" do
         source = <<~HEREDOC
           Potato = Class.new do
             include RSpock; break
@@ -175,7 +175,7 @@ module RSpock
         assert_equal strip_end_line(expected), transform(source)
       end
 
-      test "#process removes include when using Class.new" do
+      test "#run removes include when using Class.new" do
         source = <<~HEREDOC
           Potato = Class.new do
             include RSpock
@@ -190,7 +190,7 @@ module RSpock
         assert_equal strip_end_line(expected), transform(source)
       end
 
-      test "#process removes include when using traditional class definition" do
+      test "#run removes include when using traditional class definition" do
         source = <<~HEREDOC
           class Potato
             include RSpock
