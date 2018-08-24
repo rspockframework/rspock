@@ -15,7 +15,7 @@ module RSpock
 
       def run(node)
         parse(node)
-        to_ast(node)
+        build_ast(node)
       end
 
       private
@@ -27,7 +27,7 @@ module RSpock
         nil
       end
 
-      def to_ast(node)
+      def build_ast(node)
         if where_block
           ast = s(:block,
             build_where_block_iteration(where_block.data),
