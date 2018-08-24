@@ -286,6 +286,47 @@ module RSpock
         assert_equal strip_end_line(expected), transform(source)
       end
 
+      test "test with where block" do
+        source = <<~HEREDOC
+          test "Adding \#{a} and \#{b} results in \#{c}" do
+            When "adding a and b together"
+            actual = a + b
+
+            Then "we get the expected result"
+            actual == c
+
+            Where
+            a | b | c
+            1 | 2 | 3
+            4 | 5 | 9
+          end
+        HEREDOC
+
+        expected = <<~HEREDOC
+          begin
+            [[1, 2, 3], [4, 5, 9]].each.with_index do |(a, b, c), test_index|
+              test(\"\#{test_index}\#{\"Adding \"}\#{a}\#{\" and \"}\#{b}\#{\" results in \"}\#{c}\") do
+                begin
+                  begin
+                    actual = (a + b)
+                    assert_equal(c, actual)
+                  ensure
+                  end
+                rescue StandardError => e
+                  ::RSpock::Backtrace.new.associate_to_exception(e)
+                  raise
+                end
+              end
+            end
+          rescue StandardError => e
+            ::RSpock::Backtrace.new.associate_to_exception(e)
+            raise
+          end
+        HEREDOC
+
+        assert_equal strip_end_line(expected), transform(source)
+      end
+
       private
 
       def transform(source, *transformations)
