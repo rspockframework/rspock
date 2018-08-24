@@ -169,6 +169,7 @@ module RSpock
 
         expected = <<~HEREDOC
           Potato = Class.new do
+            extend(RSpock::Declarative)
           end
         HEREDOC
 
@@ -184,6 +185,7 @@ module RSpock
 
         expected = <<~HEREDOC
           Potato = Class.new do
+            extend(RSpock::Declarative)
           end
         HEREDOC
 
@@ -199,6 +201,7 @@ module RSpock
 
         expected = <<~HEREDOC
           class Potato
+            extend(RSpock::Declarative)
           end
         HEREDOC
 

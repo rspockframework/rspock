@@ -39,6 +39,10 @@ module RSpock
                                :RSpock))
       BREAK_AST = s(:break)
 
+      EXTEND_RSPOCK_DECLARATIVE = s(:send, nil, :extend,
+                                     s(:const,
+                                       s(:const, nil, :RSpock), :Declarative))
+
       def on_class(node)
         if node.children[2]&.type == :begin
           children = node.children.dup
