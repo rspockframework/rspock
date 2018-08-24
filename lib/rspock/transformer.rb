@@ -17,7 +17,7 @@ module RSpock
 
     def transform_file(file_path, transformed_file_path)
       source = File.read(file_path)
-      source_ast = build_ast(source)
+      source_ast = build_ast(source, file_path: file_path)
       # At this point, the transformed_ast contains line number mappings for the original +source+.
       transformed_ast = run_transformations(source_ast)
 
@@ -30,14 +30,14 @@ module RSpock
 
     private
 
-    def build_ast(source, transformation = nil)
-      buffer = create_buffer(source)
+    def build_ast(source, transformation = nil, file_path: nil)
+      buffer = create_buffer(source, file_path)
       ast = parser.parse(buffer)
       transformation&.run(ast) || ast
     end
 
-    def create_buffer(source)
-      buffer = Parser::Source::Buffer.new("tmp")
+    def create_buffer(source, file_path = nil)
+      buffer = Parser::Source::Buffer.new(file_path || "tmp")
       buffer.source = source.dup.force_encoding(parser.default_encoding)
 
       buffer
