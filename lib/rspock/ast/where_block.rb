@@ -4,6 +4,8 @@ require 'rspock/ast/block'
 module RSpock
   module AST
     class WhereBlock < Block
+      class MalformedError < StandardError; end
+
       def initialize(node)
         super(:Where, node)
       end
