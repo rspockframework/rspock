@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require 'rspock/ast/abstract_transformation'
 require 'rspock/ast/test_method_def_transformation'
-require 'rspock/ast/header_node_transformation'
+require 'rspock/ast/header_nodes_transformation'
 
 module RSpock
   module AST
@@ -65,7 +65,7 @@ module RSpock
             node.children[1],
             build_test_body
           )
-          HeaderNodeTransformation.new(where_block.header).process(ast)
+          HeaderNodesTransformation.new(where_block.header).run(ast)
         else
           s(:block,
             node.children[0],
