@@ -17,7 +17,7 @@ Note: RSpock is heavily inspired by Spock for the Groovy programming language.
 * (Planned) BDD-style custom reporter that outputs information from Code Blocks
 * (Planned) RSpock syntax pre-processor
 * (Planned) Capture all Then block violations
-* (Planned) Interaction-based testing, i.e. `1 * object.receive("message")` in Then blocks
+* (Planned) Interaction-based testing, i.e. `1 * object.receive("message")` in Then / Expect blocks
 
 ## Installation
 
