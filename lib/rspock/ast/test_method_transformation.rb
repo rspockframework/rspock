@@ -6,6 +6,8 @@ require 'rspock/ast/header_nodes_transformation'
 module RSpock
   module AST
     class TestMethodTransformation < AbstractTransformation
+      class BlockError < StandardError; end
+
       def initialize(source_map, start_block_class, end_block_class)
         @source_map = source_map
         @start_block_class = start_block_class
@@ -87,7 +89,7 @@ module RSpock
         scope = current_scope
 
         if scope && !scope.successors.include?(block.type)
-          raise RSpock::AST::TestClassTransformation::BlockASTError, error_msg(scope)
+          raise RSpock::AST::TestMethodTransformation::BlockError, error_msg(scope, block.node&.loc&.expression)
         end
 
         @blocks << block
@@ -105,8 +107,7 @@ module RSpock
         else
           scope = current_scope
           if scope.type == first_scope.type
-            raise RSpock::AST::TestClassTransformation::BlockASTError,
-                  "Test method must start with one of the following Blocks: #{scope.successors}"
+            raise RSpock::AST::TestMethodTransformation::BlockError, error_msg(scope, node.loc&.expression)
           end
 
           scope.children << node
@@ -117,12 +118,11 @@ module RSpock
         @source_map[node.children[1]].new(node)
       end
 
-      def error_msg(scope)
+      def error_msg(scope, range)
         if @blocks.first && @blocks.first.type == scope.type
-          "Test method must start with one of the following Blocks: #{scope.successors}"
+          "Test method @ #{range || "?"} must start with one of these Blocks: #{scope.successors}"
         else
-          "Block #{scope.type} @ #{scope.node.loc.line}:#{scope.node.loc.column} must be followed by one of the "\
-            "following Blocks: #{scope.successors}"
+          "Block #{scope.type} @ #{range || "?"} must be followed by one of these Blocks: #{scope.successors}"
         end
       end
 

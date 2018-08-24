@@ -13,8 +13,6 @@ require 'rspock/ast/test_method_transformation'
 module RSpock
   module AST
     class TestClassTransformation < AbstractTransformation
-      class BlockASTError < RuntimeError; end
-
       DefaultSourceMap = {
         Given: RSpock::AST::GivenBlock,
         When: RSpock::AST::WhenBlock,

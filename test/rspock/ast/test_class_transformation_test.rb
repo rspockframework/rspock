@@ -22,7 +22,7 @@ module RSpock
           end
         HEREDOC
 
-        error = assert_raises RSpock::AST::TestClassTransformation::BlockASTError do
+        error = assert_raises RSpock::AST::TestMethodTransformation::BlockError do
           transform(source)
         end
 
@@ -36,7 +36,7 @@ module RSpock
           end
         HEREDOC
 
-        error = assert_raises RSpock::AST::TestClassTransformation::BlockASTError do
+        error = assert_raises RSpock::AST::TestMethodTransformation::BlockError do
           transform(source)
         end
 
@@ -50,7 +50,7 @@ module RSpock
           end
         HEREDOC
 
-        error = assert_raises RSpock::AST::TestClassTransformation::BlockASTError do
+        error = assert_raises RSpock::AST::TestMethodTransformation::BlockError do
           transform(source)
         end
 
@@ -152,7 +152,7 @@ module RSpock
 
         source_map = { Block1: block1_class, Block2: block2_class }
 
-        assert_raises RSpock::AST::TestClassTransformation::BlockASTError do
+        assert_raises RSpock::AST::TestMethodTransformation::BlockError do
           transform(
             source,
             RSpock::AST::TestClassTransformation.new(start_block_class: start_block_class, source_map: source_map),
@@ -244,7 +244,7 @@ module RSpock
 
         source_map = { Block1: block1_class, Block2: block2_class }
 
-        assert_raises RSpock::AST::TestClassTransformation::BlockASTError do
+        assert_raises RSpock::AST::TestMethodTransformation::BlockError do
           transform(
             source,
             RSpock::AST::TestClassTransformation.new(start_block_class: start_block_class, source_map: source_map),
