@@ -24,7 +24,7 @@ module RSpock
 
       def parse_header
         header = []
-        header_pipe_node?(children.first, header)
+        header_pipe_node?(children.first, header) || terminal_header_node?(children.first, header)
         header
       end
 
@@ -46,7 +46,7 @@ module RSpock
           node.children.first.nil? &&
           node.children.last.is_a?(Symbol)
 
-        raise unless result
+        raise MalformedError, "Where Block is malformed at location: #{node.loc&.expression || "?"}" unless result
 
         header << node.children.last if result
 
@@ -57,7 +57,7 @@ module RSpock
         _header_node, *row_nodes = children
         row_nodes.map do |node|
           data = []
-          data_pipe_node?(node, data)
+          data_pipe_node?(node, data) || terminal_data_node?(node, data)
           data
         end
       end
@@ -73,13 +73,8 @@ module RSpock
       end
 
       def terminal_data_node?(node, data)
-        result = !data_pipe_node?(node, [])
-
-        raise unless result
-
-        data << node if result
-
-        result
+        data << node
+        true
       end
     end
   end
