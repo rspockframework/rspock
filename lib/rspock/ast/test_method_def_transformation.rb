@@ -9,13 +9,7 @@ module RSpock
                          s(:lvar, :test_index))
 
       def run(node)
-        raise unless node.type == :send && node.children[0].nil? && node.children[1] == :test
-
-        process(node)
-      end
-
-      def process(node)
-        return node unless node.is_a?(Parser::AST::Node)
+        return node unless node.type == :send && node.children[0].nil? && node.children[1] == :test
 
         super
       end

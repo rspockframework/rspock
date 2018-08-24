@@ -13,7 +13,7 @@ module RSpock
         @blocks = []
       end
 
-      def process(node)
+      def run(node)
         parse(node)
         to_ast(node)
       end
