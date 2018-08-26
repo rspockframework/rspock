@@ -23,8 +23,8 @@ module RSpock
       private
 
       def parse(node)
-        add_block(@start_block_class.new)
-        test_method_nodes(node).each { |node| parse_node(node) }
+        add_block(@start_block_class.new(node))
+        test_method_nodes(node).each { |n| parse_node(n) }
         add_block(@end_block_class.new)
         nil
       end
@@ -89,7 +89,7 @@ module RSpock
         scope = current_scope
 
         if scope && !scope.successors.include?(block.type)
-          raise RSpock::AST::TestMethodTransformation::BlockError, error_msg(scope, block.node&.loc&.expression)
+          raise RSpock::AST::TestMethodTransformation::BlockError, error_msg(scope)
         end
 
         @blocks << block
@@ -107,7 +107,7 @@ module RSpock
         else
           scope = current_scope
           if scope.type == first_scope.type
-            raise RSpock::AST::TestMethodTransformation::BlockError, error_msg(scope, node.loc&.expression)
+            raise RSpock::AST::TestMethodTransformation::BlockError, error_msg(scope)
           end
 
           scope.children << node
@@ -118,11 +118,12 @@ module RSpock
         @source_map[node.children[1]].new(node)
       end
 
-      def error_msg(scope, range)
-        if @blocks.first && @blocks.first.type == scope.type
-          "Test method @ #{range || "?"} must start with one of these Blocks: #{scope.successors}"
+      def error_msg(scope)
+        range = scope.node&.loc&.expression || "?"
+        if scope.type == first_scope.type
+          "Test method @ #{range} must start with one of these Blocks: #{scope.successors}"
         else
-          "Block #{scope.type} @ #{range || "?"} must be followed by one of these Blocks: #{scope.successors}"
+          "Block #{scope.type} @ #{range} must be followed by one of these Blocks: #{scope.successors}"
         end
       end
 

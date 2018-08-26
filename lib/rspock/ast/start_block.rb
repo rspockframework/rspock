@@ -4,8 +4,8 @@ require 'rspock/ast/block'
 module RSpock
   module AST
     class StartBlock < Block
-      def initialize
-        super(:Start, nil)
+      def initialize(node)
+        super(:Start, node)
       end
 
       def successors

@@ -26,7 +26,7 @@ module RSpock
           transform(source)
         end
 
-        assert_equal "Test method must start with one of the following Blocks: #{[:Given, :When, :Expect]}", error.message
+        assert_equal "Test method @ tmp:1:1 must start with one of these Blocks: #{[:Given, :When, :Expect]}", error.message
       end
 
       test "first node cannot be regular code" do
@@ -40,7 +40,7 @@ module RSpock
           transform(source)
         end
 
-        assert_equal "Test method must start with one of the following Blocks: #{[:Given, :When, :Expect]}", error.message
+        assert_equal "Test method @ tmp:1:1 must start with one of these Blocks: #{[:Given, :When, :Expect]}", error.message
       end
 
       test "first node cannot be a non-starting block" do
@@ -54,7 +54,7 @@ module RSpock
           transform(source)
         end
 
-        assert_equal "Test method must start with one of the following Blocks: #{[:Given, :When, :Expect]}", error.message
+        assert_equal "Test method @ tmp:1:1 must start with one of these Blocks: #{[:Given, :When, :Expect]}", error.message
       end
 
       test "expect block can be followed by nothing" do
@@ -87,8 +87,8 @@ module RSpock
         HEREDOC
 
         start_block_class = Class.new(RSpock::AST::Block) do
-          def initialize
-            super(:Start1, nil)
+          def initialize(node)
+            super(:Start1, node)
           end
 
           def successors
@@ -129,8 +129,8 @@ module RSpock
         HEREDOC
 
         start_block_class = Class.new(RSpock::AST::Block) do
-          def initialize
-            super(:Start1, nil)
+          def initialize(node)
+            super(:Start1, node)
           end
 
           def successors
@@ -152,12 +152,14 @@ module RSpock
 
         source_map = { Block1: block1_class, Block2: block2_class }
 
-        assert_raises RSpock::AST::TestMethodTransformation::BlockError do
+        error = assert_raises RSpock::AST::TestMethodTransformation::BlockError do
           transform(
             source,
             RSpock::AST::TestClassTransformation.new(start_block_class: start_block_class, source_map: source_map),
           )
         end
+
+        assert_equal "Block Block1 @ tmp:2:3 must be followed by one of these Blocks: #{[:End]}", error.message
       end
 
       test "#run removes include and break when using Class.new" do
@@ -221,8 +223,8 @@ module RSpock
         HEREDOC
 
         start_block_class = Class.new(RSpock::AST::Block) do
-          def initialize
-            super(:Start1, nil)
+          def initialize(node)
+            super(:Start1, node)
           end
 
           def successors

@@ -8,7 +8,7 @@ module RSpock
       extend RSpock::Declarative
 
       def setup
-        @block = RSpock::AST::StartBlock.new
+        @block = RSpock::AST::StartBlock.new(nil)
       end
 
       test "#successors returns the correct successors" do
