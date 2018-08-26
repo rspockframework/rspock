@@ -40,7 +40,7 @@ module RSpock
           ast = build_test_method_def(node)
         end
 
-        source_map_wrapper(ast)
+        source_map_rescue_wrapper(ast)
       end
 
       def build_where_block_iteration(row_nodes)
@@ -141,10 +141,10 @@ module RSpock
             *@blocks.select { |block| block.type == :Cleanup }.first&.to_children_ast
           )
         )
-        source_map_wrapper(ast)
+        source_map_rescue_wrapper(ast)
       end
 
-      def source_map_wrapper(node)
+      def source_map_rescue_wrapper(node)
         s(:kwbegin,
           s(:rescue,
             node,
