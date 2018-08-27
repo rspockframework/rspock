@@ -32,7 +32,7 @@ module RSpock
       def build_ast(node)
         if where_block
           ast = s(:block,
-            build_where_block_iteration(where_block.data),
+            build_where_block_iterator(where_block.data),
             build_where_block_args(where_block.header),
             build_test_method_def(node)
           )
@@ -43,7 +43,7 @@ module RSpock
         source_map_rescue_wrapper(ast)
       end
 
-      def build_where_block_iteration(row_nodes)
+      def build_where_block_iterator(row_nodes)
         s(:send,
           s(:send,
             s(:array, *row_nodes.map { |row| s(:array, *row) }),
@@ -128,7 +128,7 @@ module RSpock
       end
 
       def where_block
-        @where_block ||= @blocks.select { |block| block.type == :Where }.first
+        @where_block ||= @blocks.detect { |block| block.type == :Where }
       end
 
       def build_test_body
