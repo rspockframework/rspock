@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'ast_transform/abstract_transformation'
+require 'ast_transform/transformer'
 require 'unparser'
 
 module ASTTransform
@@ -28,7 +29,7 @@ module ASTTransform
     def process_node(node, previous_node)
       if transform_node?(previous_node) && transformable_node?(node)
         transformations = extract_transformations(previous_node)
-        run_transformations(node, transformations)
+        ASTTransform::Transformer.new(*transformations).transform_ast(node)
       else
         node
       end

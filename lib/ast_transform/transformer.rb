@@ -28,6 +28,10 @@ module ASTTransform
       transformed_source
     end
 
+    def transform_ast(ast)
+      run_transformations(ast)
+    end
+
     private
 
     def build_ast(source, transformation = nil, file_path: nil)
