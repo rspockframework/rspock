@@ -76,18 +76,6 @@ module RSpock
       end
 
       def process_rspock(node)
-        # index = node&.children&.find_index{ |child| child == INCLUDE_RSPOCK_AST }
-        # Don't process this class if 'include RSpock' isn't found
-        # return node unless index
-
-        # index = node.children.find_index(INCLUDE_RSPOCK_AST)
-        # indexes_to_reject = [index]
-
-        # if node.children[index + 1] == BREAK_AST
-        #   indexes_to_reject << index + 1
-        # end
-
-        # children = node.children.reject.each_with_index { |node, index| indexes_to_reject.include?(index) }
         node.updated(nil, process_all(node).unshift(EXTEND_RSPOCK_DECLARATIVE))
       end
 
