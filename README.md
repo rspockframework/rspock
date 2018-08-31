@@ -1,6 +1,6 @@
 # RSpock
 
-RSpock is a testing and specification framework built on top of Minitest. It intends to give productivity back to the developers with its incredibly simple yet highly expressive specification language.
+RSpock is a testing and specification framework built on top of Minitest. It intends to give back productivity to its users with its incredibly simple yet highly expressive specification language.
 
 Note: RSpock is heavily inspired by Spock for the Groovy programming language.
 
@@ -133,7 +133,7 @@ cart.products.size == 1
 cart.products.first == product
 ```
 
-The Then block describes the response from the stimulus. Any comparison operators used in the Then block (`==` or `!=`) is transformed to assert_equal / refute_equal under the hood. By convention, the LHS operand is considered the actual value, while the RHS operand is considered the expected value.
+The Then block describes the response from the stimulus. Any comparison operators used in the Then block (`==` or `!=`) is transformed to assert_equal / refute_equal under the hood. By convention, the __LHS__ operand is considered the __actual__ value, while the __RHS__ operand is considered the __expected__ value.
 
 #### Expect Block
 
