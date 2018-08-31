@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require 'parser/current'
 
-module RSpock
+module ASTTransform
   class SourceMap
     class << self
       def register_source_map(file_path, source_map)

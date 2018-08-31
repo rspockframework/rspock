@@ -6,7 +6,7 @@ module RSpock
   module AST
     class ExpectBlockTest < Minitest::Test
       extend RSpock::Declarative
-      include RSpock::AST::TransformationHelper
+      include ASTTransform::TransformationHelper
 
       def setup
         @block = RSpock::AST::ExpectBlock.new(nil)

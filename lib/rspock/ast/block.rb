@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-
 module RSpock
   module AST
     class Block

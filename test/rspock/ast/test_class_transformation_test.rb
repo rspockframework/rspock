@@ -1,18 +1,17 @@
 # frozen_string_literal: true
 require 'test_helper'
 require 'unparser'
-require 'rspock/ast/test_class_transformation'
-require 'rspock/transformer'
+require 'ast_transform/transformer'
 require 'parser/current'
 
 module RSpock
   module AST
     class TestClassTransformationTest < Minitest::Test
       extend RSpock::Declarative
-      include RSpock::AST::TransformationHelper
+      include ASTTransform::TransformationHelper
 
       def setup
-        @transformation = RSpock::AST::TestClassTransformation.new
+        @transformation = RSpock::AST::Transformation.new
       end
 
       test "empty test block raises" do
@@ -116,7 +115,7 @@ module RSpock
 
         transform(
           source,
-          RSpock::AST::TestClassTransformation.new(start_block_class: start_block_class, source_map: source_map),
+          RSpock::AST::Transformation.new(start_block_class: start_block_class, source_map: source_map),
         )
       end
 
@@ -155,17 +154,17 @@ module RSpock
         error = assert_raises RSpock::AST::TestMethodTransformation::BlockError do
           transform(
             source,
-            RSpock::AST::TestClassTransformation.new(start_block_class: start_block_class, source_map: source_map),
+            RSpock::AST::Transformation.new(start_block_class: start_block_class, source_map: source_map),
           )
         end
 
         assert_equal "Block Block1 @ tmp:2:3 must be followed by one of these Blocks: #{[:End]}", error.message
       end
 
-      test "#run removes include and break when using Class.new" do
+      test "#run adds extend RSpock::Declarative when using Class.new" do
         source = <<~HEREDOC
           Potato = Class.new do
-            include RSpock; break
+            
           end
         HEREDOC
 
@@ -178,26 +177,10 @@ module RSpock
         assert_equal strip_end_line(expected), transform(source)
       end
 
-      test "#run removes include when using Class.new" do
-        source = <<~HEREDOC
-          Potato = Class.new do
-            include RSpock
-          end
-        HEREDOC
-
-        expected = <<~HEREDOC
-          Potato = Class.new do
-            extend(RSpock::Declarative)
-          end
-        HEREDOC
-
-        assert_equal strip_end_line(expected), transform(source)
-      end
-
-      test "#run removes include when using traditional class definition" do
+      test "#run adds extend RSpock::Declarative when using traditional class definition" do
         source = <<~HEREDOC
           class Potato
-            include RSpock
+            
           end
         HEREDOC
 
@@ -213,8 +196,6 @@ module RSpock
       test "raises if block is followed by an illegal block when code is inside a Class" do
         source = <<~HEREDOC
           class Potato
-            include RSpock
-
             test "Adding \#{a} and \#{b} results in \#{c}" do
               Block1
               Block2
@@ -249,7 +230,7 @@ module RSpock
         assert_raises RSpock::AST::TestMethodTransformation::BlockError do
           transform(
             source,
-            RSpock::AST::TestClassTransformation.new(start_block_class: start_block_class, source_map: source_map),
+            RSpock::AST::Transformation.new(start_block_class: start_block_class, source_map: source_map),
           )
         end
       end
@@ -334,7 +315,7 @@ module RSpock
       def transform(source, *transformations)
         transformations << @transformation if transformations.empty?
 
-        Transformer.new(*transformations).transform(source)
+        ASTTransform::Transformer.new(*transformations).transform(source)
       end
 
       def strip_end_line(str)

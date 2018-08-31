@@ -6,7 +6,7 @@ module RSpock
   module AST
     class ComparisonToAssertionTransformationTest < Minitest::Test
       extend RSpock::Declarative
-      include RSpock::AST::TransformationHelper
+      include ASTTransform::TransformationHelper
 
       def setup
         @transformation = RSpock::AST::ComparisonToAssertionTransformation.new

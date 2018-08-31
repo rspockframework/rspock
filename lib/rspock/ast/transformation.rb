@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-require 'rspock/ast/abstract_transformation'
+require 'ast_transform/abstract_transformation'
 require 'rspock/ast/start_block'
 require 'rspock/ast/given_block'
 require 'rspock/ast/when_block'
@@ -12,7 +12,7 @@ require 'rspock/ast/test_method_transformation'
 
 module RSpock
   module AST
-    class TestClassTransformation < AbstractTransformation
+    class Transformation < ASTTransform::AbstractTransformation
       DefaultSourceMap = {
         Given: RSpock::AST::GivenBlock,
         When: RSpock::AST::WhenBlock,
@@ -28,14 +28,6 @@ module RSpock
         @source_map = source_map
         @end_block_class = end_block_class
       end
-
-      INCLUDE_RSPOCK_AST = s(:send,
-                             nil,
-                             :include,
-                             s(:const,
-                               nil,
-                               :RSpock))
-      BREAK_AST = s(:break)
 
       EXTEND_RSPOCK_DECLARATIVE = s(:send, nil, :extend,
                                      s(:const,
@@ -84,20 +76,19 @@ module RSpock
       end
 
       def process_rspock(node)
-        index = node&.children&.find_index{ |child| child == INCLUDE_RSPOCK_AST }
-        if index
-          index = node.children.find_index(INCLUDE_RSPOCK_AST)
-          indexes_to_reject = [index]
+        # index = node&.children&.find_index{ |child| child == INCLUDE_RSPOCK_AST }
+        # Don't process this class if 'include RSpock' isn't found
+        # return node unless index
 
-          if node.children[index + 1] == BREAK_AST
-            indexes_to_reject << index + 1
-          end
+        # index = node.children.find_index(INCLUDE_RSPOCK_AST)
+        # indexes_to_reject = [index]
 
-          children = node.children.reject.each_with_index { |node, index| indexes_to_reject.include?(index) }
-          node.updated(nil, children.map { |node| process(node) }.unshift(EXTEND_RSPOCK_DECLARATIVE))
-        else
-          node.updated(nil, process_all(node))
-        end
+        # if node.children[index + 1] == BREAK_AST
+        #   indexes_to_reject << index + 1
+        # end
+
+        # children = node.children.reject.each_with_index { |node, index| indexes_to_reject.include?(index) }
+        node.updated(nil, process_all(node).unshift(EXTEND_RSPOCK_DECLARATIVE))
       end
 
       def on_block(node)

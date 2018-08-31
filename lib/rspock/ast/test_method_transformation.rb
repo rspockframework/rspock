@@ -1,11 +1,11 @@
 # frozen_string_literal: true
-require 'rspock/ast/abstract_transformation'
+require 'ast_transform/abstract_transformation'
 require 'rspock/ast/test_method_def_transformation'
 require 'rspock/ast/header_nodes_transformation'
 
 module RSpock
   module AST
-    class TestMethodTransformation < AbstractTransformation
+    class TestMethodTransformation < ASTTransform::AbstractTransformation
       class BlockError < StandardError; end
 
       def initialize(source_map, start_block_class, end_block_class)

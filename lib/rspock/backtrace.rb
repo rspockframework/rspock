@@ -1,7 +1,9 @@
 # frozen_string_literal: true
+require 'ast_transform/source_map'
+
 module RSpock
   class Backtrace
-    def initialize(source_map_provider: ::RSpock::SourceMap)
+    def initialize(source_map_provider: ::ASTTransform::SourceMap)
       @source_map_provider = source_map_provider
     end
 

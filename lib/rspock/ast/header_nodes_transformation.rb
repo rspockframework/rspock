@@ -1,9 +1,9 @@
 # frozen_string_literal: true
-require 'rspock/ast/abstract_transformation'
+require 'ast_transform/abstract_transformation'
 
 module RSpock
   module AST
-    class HeaderNodesTransformation < AbstractTransformation
+    class HeaderNodesTransformation < ASTTransform::AbstractTransformation
       def initialize(header)
         @header = header
       end

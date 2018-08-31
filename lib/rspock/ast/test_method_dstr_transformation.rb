@@ -1,9 +1,9 @@
 # frozen_string_literal: true
-require 'rspock/ast/abstract_transformation'
+require 'ast_transform/abstract_transformation'
 
 module RSpock
   module AST
-    class TestMethodDstrTransformation < AbstractTransformation
+    class TestMethodDstrTransformation < ASTTransform::AbstractTransformation
       TEST_INDEX_AST = s(:begin,
                          s(:lvar, :test_index))
 

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
-require 'rspock/ast/abstract_transformation'
+require 'ast_transform/abstract_transformation'
 
 module RSpock
   module AST
-    class ComparisonToAssertionTransformation < AbstractTransformation
+    class ComparisonToAssertionTransformation < ASTTransform::AbstractTransformation
       def on_send(node)
         if node.children.count == 3 && node.children[1] == :==
           transform_to_assert_equal(node.children[0], node.children[2])

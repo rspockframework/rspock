@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 require 'test_helper'
 
-ExampleRSpockTest = Class.new(Minitest::Test) do
-  include RSpock; break
-
+transform!(RSpock::AST::Transformation.new)
+class ExampleRSpockTest < Minitest::Test
   class << self
     def mul(a, b)
       a * b
@@ -46,3 +45,4 @@ ExampleRSpockTest = Class.new(Minitest::Test) do
     mul(mul(1, 2), 2) | mul(2, 2) | mul(4, 2)
   end
 end
+

@@ -1,8 +1,5 @@
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
-require "rspock"
-
-# Pry
-require 'pry'
+require "rspock" unless defined?(RSpock)
 
 # Minitest
 begin

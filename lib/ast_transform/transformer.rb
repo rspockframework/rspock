@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 require 'parser/current'
 require 'unparser'
-require 'rspock/source_map'
+require 'ast_transform/source_map'
 
-module RSpock
+module ASTTransform
   class Transformer
     def initialize(*transformations)
       @transformations = transformations
@@ -58,8 +58,8 @@ module RSpock
       # The transformed_source is re-parsed to get the correct line numbers for the transformed_ast, which is the code
       # that will run.
       rewritten_ast = build_ast(transformed_source)
-      source_map = RSpock::SourceMap.new(source_file_path, transformed_ast, rewritten_ast)
-      RSpock::SourceMap.register_source_map(transformed_file_path, source_map)
+      source_map = ASTTransform::SourceMap.new(source_file_path, transformed_ast, rewritten_ast)
+      ASTTransform::SourceMap.register_source_map(transformed_file_path, source_map)
     end
   end
 end
