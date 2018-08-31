@@ -55,22 +55,32 @@ module ASTTransform
 
     def extract_transformation(node)
       return unless node.is_a?(Parser::AST::Node)
+      return unless node.children.count >= 2
 
-      if node.type == :send && node.children.count >= 2 && node.children[1] == :new
-        const_node, _new_symbol, *_arg_nodes = *node.children
-        const_name = Unparser.unparse(const_node)
-
-        constant = try_const_get(const_name)
-        unless constant
-          require_path = require_path(const_name)
-          require(require_path)
-        end
-
+      if node.children[1] == :new
+        require_transformation(node)
         code = Unparser.unparse(node)
+
         TOPLEVEL_BINDING.eval(code)
       else
+        require_transformation(node)
+        code = "#{Unparser.unparse(node)}.new"
 
+        TOPLEVEL_BINDING.eval(code)
       end
+    end
+
+    def require_transformation(node)
+      const_node = node.children.first
+      const_name = Unparser.unparse(const_node)
+
+      constant = try_const_get(const_name)
+      unless constant
+        require_path = require_path(const_name)
+        require(require_path)
+      end
+
+      nil
     end
 
     def require_path(const_name)
