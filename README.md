@@ -212,7 +212,7 @@ You might have noticed above that the test name contains interpolations, that's 
 
 ```ruby
 transform!(RSpock::AST::Transformation)
-class MyTest
+class MyTest < Minitest::Test
   # ...
 end
 ```
