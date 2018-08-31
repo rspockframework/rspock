@@ -90,25 +90,5 @@ module ASTTransform
     rescue NameError
       nil
     end
-
-    def run_transformations(ast, transformations)
-      transformations.inject(ast) do |ast, transformation|
-        transformation.run(ast)
-      end
-    end
-
-
-    s(:send, nil, :transform!,
-      s(:send,
-        s(:const,
-          s(:const,
-            s(:const, nil, :RSpock),
-            :AST
-          ),
-          :Transformation
-        ),
-        :new
-      )
-    )
   end
 end
