@@ -47,26 +47,21 @@ Getting started using RSpock is extremely easy!
 
 ```ruby
 require 'test_helper'
-require 'rspock'
 
-MyTest = Class.new(Minitest::Test) do
-  include RSpock; break
-
+transform!(RSpock::AST::Transformation)
+class MyTest < Minitest::Test
   # Feature Methods go here
 end
 ```
 
-Note: The dynamic `Class.new` and `include RSpock; break` are strongly recommended. See [here](#runtime-rspock-syntax-evaluation) for more info.
+Note: `transform!` is an annotation added by the `ast_transform` module that allows executing AST transformations on the annotated code. See [here](#rspock-syntax-pre-processor) for more info.
 
 ### Example With Feature Method and Code Blocks
 
 ```ruby
 require 'test_helper'
-require 'rspock'
 
-MyTest = Class.new(Minitest::Test) do
-  include RSpock; break
-
+class MyTest < Minitest::Test
   test "adding 1 and 2 results in 3" do
     When "Adding 1 and 2"
     actual = 1 + 2
@@ -108,7 +103,7 @@ RSpock has support for each conceptual phase of a feature method. As such, featu
 
 See below diagram for how you may arrange code blocks. Any directed path from Start to End is valid.
 
-![](https://github.com/jpduchesne/rspock/raw/master/block_graph.png "Block Graph")
+![](block_graph.png "Block Graph")
 
 #### Given Block
 
@@ -137,7 +132,7 @@ cart.products.size == 1
 cart.products.first == product
 ```
 
-The Then block describes the response from the stimulus. Any comparison done in the Then block is transformed to assert_equal / refute_equal under the hood. By convention, the LHS operand is considered the actual value, while the RHS operand is considered the expected value.
+The Then block describes the response from the stimulus. Any comparison operators used in the Then block (`==` or `!=`) is transformed to assert_equal / refute_equal under the hood. By convention, the LHS operand is considered the actual value, while the RHS operand is considered the expected value.
 
 #### Expect Block
 
@@ -212,17 +207,18 @@ You might have noticed above that the test name contains interpolations, that's 
 
 ## More info
 
-### Runtime RSpock Syntax Evaluation
+### RSpock Syntax Pre-Processor
 
 ```ruby
-MyTest = Class.new(Minitest::Test) do
-  include RSpock; break
+transform!(RSpock::AST::Transformation)
+class MyTest
+  # ...
 end
 ```
 
 RSpock, although having valid Ruby syntax, has different semantics in certain contexts, so that we can offer a more expressive and readable syntax. As such, we perform AST transformations on the code to produce semantically valid-in-context Ruby code.
 
-Right now, the only supported RSpock syntax processing is runtime, so the reason why we use a dynamic `Class.new` to define the test class is to support runtime RSpock syntax evaluation. This combined with the `break` in `include RSpock; break` allows us to process the RSpock test class at runtime, and breaking out of the ruby block to avoid executing any further code, since we care about executing the processed code only.
+This is achieved by the `transform!` "method call" above. This doesn't actually call anything, it instead is an annotation exposed by the `ast_transform` module that picks up whatever AST transformations are passed and runs them before compilation into Ruby instructions. The transformations required by RSpock are encapsulated in `RSpock::AST::Transformation`.
 
 ## Development
 
