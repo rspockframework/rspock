@@ -61,6 +61,7 @@ Note: `transform!` is an annotation added by the `ast_transform` module that all
 ```ruby
 require 'test_helper'
 
+transform!(RSpock::AST::Transformation)
 class MyTest < Minitest::Test
   test "adding 1 and 2 results in 3" do
     When "Adding 1 and 2"
