@@ -11,7 +11,7 @@ module ASTTransform
 
     def transform(source)
       ast = build_ast(source)
-      transformed_ast = run_transformations(ast)
+      transformed_ast = transform_ast(ast)
       Unparser.unparse(transformed_ast)
     end
 
@@ -19,7 +19,7 @@ module ASTTransform
       source = File.read(file_path)
       source_ast = build_ast(source, file_path: file_path)
       # At this point, the transformed_ast contains line number mappings for the original +source+.
-      transformed_ast = run_transformations(source_ast)
+      transformed_ast = transform_ast(source_ast)
 
       transformed_source = Unparser.unparse(transformed_ast)
 
@@ -29,7 +29,9 @@ module ASTTransform
     end
 
     def transform_ast(ast)
-      run_transformations(ast)
+      @transformations.inject(ast) do |ast, transformation|
+        transformation.run(ast)
+      end
     end
 
     private
@@ -50,12 +52,6 @@ module ASTTransform
     def parser
       @parser&.reset
       @parser ||= Parser::CurrentRuby.new
-    end
-
-    def run_transformations(ast)
-      @transformations.inject(ast) do |ast, transformation|
-        transformation.run(ast)
-      end
     end
 
     def register_source_map(source_file_path, transformed_file_path, transformed_ast, transformed_source)
