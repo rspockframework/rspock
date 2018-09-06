@@ -7,6 +7,8 @@ module ASTTransform
       # Registers the given SourceMap.
       #
       # @param source_map [SourceMap] The source map to be registered.
+      #
+      # @return [void]
       def register_source_map(source_map)
         source_maps[source_map.transformed_file_path] = source_map
 
