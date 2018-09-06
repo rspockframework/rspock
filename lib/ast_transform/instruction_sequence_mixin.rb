@@ -22,7 +22,7 @@ module ASTTransform
         end
 
         contents = rewritten_source
-        RubyVM::InstructionSequence.compile(contents, source_path)
+        RubyVM::InstructionSequence.compile(contents, rewritten_file_pathname.to_s)
       end
     end
   end

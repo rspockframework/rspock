@@ -58,8 +58,8 @@ module ASTTransform
       # The transformed_source is re-parsed to get the correct line numbers for the transformed_ast, which is the code
       # that will run.
       rewritten_ast = build_ast(transformed_source)
-      source_map = ASTTransform::SourceMap.new(source_file_path, transformed_ast, rewritten_ast)
-      ASTTransform::SourceMap.register_source_map(transformed_file_path, source_map)
+      source_map = ASTTransform::SourceMap.new(source_file_path, transformed_file_path, transformed_ast, rewritten_ast)
+      ASTTransform::SourceMap.register_source_map(source_map)
     end
   end
 end

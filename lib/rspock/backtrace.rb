@@ -12,7 +12,7 @@ module RSpock
     end
 
     def filter_location_string(location)
-      file_path, lineno = location.match(/([\S]+):(\d+):/).captures
+      file_path, lineno = location.match(/([\S]+):(\d+)/).captures
       lineno = lineno.to_i
       absolute_path = File.expand_path(file_path)
 
@@ -20,7 +20,7 @@ module RSpock
       return location unless source_map
 
       line_number = source_map.line(lineno) || '?'
-      location.gsub(/tmp\/rspock\/([\S]+):(\d+):/, "\\1:#{line_number}:")
+      location.gsub(/tmp\/rspock\/([\S]+):(\d+)/, "\\1:#{line_number}")
     end
 
     private
@@ -30,7 +30,7 @@ module RSpock
     end
 
     def location_builder(location)
-      source_map = @source_map_provider.for_file_path(location.absolute_path)
+      source_map = @source_map_provider.for_file_path(location.absolute_path || location.path)
       return location.to_s unless source_map
 
       line_number = source_map.line(location.lineno) || '?'
