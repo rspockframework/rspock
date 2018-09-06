@@ -170,6 +170,8 @@ file&.close # Use safe navigation operator, since +file+ is nil if an error occu
 
 The Cleanup block is where you free any resources used by a Feature Method. It runs even if a previous part of the Feature Method produced an exception. This means that Cleanup blocks must be coded defensively so as to not raise `NoMethodError`. A good way to do this in Ruby is demonstrated above by using the `&.` safe navigation operator.
 
+This is also useful to ensure a shared resource is cleaned in between Feature Methods / test runs so as to not leak test state.
+
 #### Where Block
 
 Where blocks have very special semantics in RSpock. They take the form of a data table, for readability.
