@@ -133,14 +133,14 @@ module RSpock
 
       def build_test_body
         ast = s(:kwbegin,
-          s(:ensure,
-            s(:begin,
-              *@blocks.select { |block| [:Given, :When, :Then, :Expect].include?(block.type) }
-                .map { |block| block.to_children_ast }.flatten,
-              ),
-            *@blocks.select { |block| block.type == :Cleanup }.first&.to_children_ast
-          )
-        )
+                s(:ensure,
+                  s(:begin,
+                    *@blocks.select { |block| [:Given, :When, :Then, :Expect].include?(block.type) }
+                      .map { |block| block.to_children_ast }.flatten,
+                    ),
+                  *@blocks.select { |block| block.type == :Cleanup }.first&.to_children_ast
+                )
+              )
         source_map_rescue_wrapper(ast)
       end
 
