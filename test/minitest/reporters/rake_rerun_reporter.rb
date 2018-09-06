@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require "minitest/reporters"
+require 'minitest/reporters'
+require 'ast_transform/source_map'
 
 module Minitest
   module Reporters
@@ -33,6 +34,7 @@ module Minitest
 
       def rerun_message_for(test)
         file_path = location(test.failure).gsub(/(\:\d*)\z/, "")
+        file_path = ASTTransform::SourceMap.for_file_path(file_path)&.source_file_path || file_path
         "Rerun:\n#{@rerun_user_prefix} rake test TEST=#{file_path} TESTOPTS=\"--name=#{test.name} -v\""
       end
 
