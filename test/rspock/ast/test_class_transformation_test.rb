@@ -256,12 +256,12 @@ module RSpock
                 ensure
                 end
               rescue StandardError => e
-                ::RSpock::Backtrace.new.associate_to_exception(e)
+                ::RSpock::BacktraceFilter.new.filter_exception(e)
                 raise
               end
             end
           rescue StandardError => e
-            ::RSpock::Backtrace.new.associate_to_exception(e)
+            ::RSpock::BacktraceFilter.new.filter_exception(e)
             raise
           end
         HEREDOC
@@ -296,13 +296,13 @@ module RSpock
                   ensure
                   end
                 rescue StandardError => e
-                  ::RSpock::Backtrace.new.associate_to_exception(e)
+                  ::RSpock::BacktraceFilter.new.filter_exception(e)
                   raise
                 end
               end
             end
           rescue StandardError => e
-            ::RSpock::Backtrace.new.associate_to_exception(e)
+            ::RSpock::BacktraceFilter.new.filter_exception(e)
             raise
           end
         HEREDOC

@@ -2,16 +2,29 @@
 require 'ast_transform/source_map'
 
 module RSpock
-  class Backtrace
+  class BacktraceFilter
+    # Constructs a new BacktraceFilter instance.
+    #
+    # @param source_map_provider [::ASTTransform::SourceMap] The source map provider to be used.
     def initialize(source_map_provider: ::ASTTransform::SourceMap)
       @source_map_provider = source_map_provider
     end
 
-    def associate_to_exception(e)
-      e.set_backtrace(source_mapped_backtrace(e))
+    # Filters the backtrace of the given +exception+ and applies the filtered backtrace to the exception.
+    #
+    # @param exception [Exception] The exception to be filtered.
+    #
+    # @return [void]
+    def filter_exception(exception)
+      exception.set_backtrace(source_mapped_backtrace(exception))
     end
 
-    def filter_location_string(location)
+    # Filters the given location.
+    #
+    # @param location [String] A location string.
+    #
+    # @return [String] The filtered location.
+    def filter_string(location)
       file_path, lineno = location.match(/([\S]+):(\d+)/).captures
       lineno = lineno.to_i
       absolute_path = File.expand_path(file_path)

@@ -2,7 +2,7 @@
 require 'rspock/version'
 
 require 'rspock/declarative'
-require 'rspock/backtrace'
+require 'rspock/backtrace_filter'
 
 # TODO: This is implementation details
 require 'ast_transform'

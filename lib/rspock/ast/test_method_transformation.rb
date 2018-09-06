@@ -158,7 +158,7 @@ module RSpock
                   s(:send,
                     s(:const,
                       s(:const,
-                        s(:cbase), :RSpock), :Backtrace), :new), :associate_to_exception,
+                        s(:cbase), :RSpock), :BacktraceFilter), :new), :filter_exception,
                   s(:lvar, :e)
                 ),
                 s(:send, nil, :raise)

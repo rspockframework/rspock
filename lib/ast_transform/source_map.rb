@@ -58,7 +58,7 @@ module ASTTransform
     def line(line_number)
       if @lines.key?(line_number)
         @lines[line_number].each do |dig_array|
-          result = dig_last_valid_node(@source_ranges_ast, dig_array)&.loc&.expression&.line
+          result = approximate_dig_last_valid_node(@source_ranges_ast, dig_array)&.loc&.expression&.line
           return result if result
         end
       end
