@@ -2,6 +2,7 @@
 require 'ast_transform/abstract_transformation'
 require 'rspock/ast/test_method_def_transformation'
 require 'rspock/ast/header_nodes_transformation'
+require 'rspock/ast/test_index_nodes_transformation'
 
 module RSpock
   module AST
@@ -141,6 +142,7 @@ module RSpock
                   *@blocks.select { |block| block.type == :Cleanup }.first&.to_children_ast
                 )
               )
+        ast = TestIndexNodesTransformation.new.run(ast)
         source_map_rescue_wrapper(ast)
       end
 
