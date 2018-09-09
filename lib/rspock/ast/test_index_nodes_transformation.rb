@@ -4,20 +4,16 @@ require 'ast_transform/abstract_transformation'
 module RSpock
   module AST
     class TestIndexNodesTransformation < ASTTransform::AbstractTransformation
+      TEST_INDEX_SEND_NODE = s(:send, nil, :test_index)
+
       def on_send(node)
         return super unless test_index_node?(node)
 
         node.updated(:lvar, [node.children[1]])
       end
 
-      private
-
       def test_index_node?(node)
-        return false if node.nil?
-
-        node.children.count == 2 &&
-          node.children[0].nil? &&
-          node.children[1] == :test_index
+        node == TEST_INDEX_SEND_NODE
       end
     end
   end

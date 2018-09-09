@@ -45,4 +45,3 @@ class ExampleRSpockTest < Minitest::Test
     mul(mul(1, 2), 2) | mul(2, 2) | mul(4, 2)
   end
 end
-

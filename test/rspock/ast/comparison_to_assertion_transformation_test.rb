@@ -57,6 +57,22 @@ module RSpock
 
         assert_equal expected, actual
       end
+
+      test "#on_send does not transform the AST into assert_equal if lhs is test_index" do
+        node = s(:send, nil, s(:send, nil, :test_index), :==, 1)
+
+        actual = @transformation.on_send(node)
+
+        assert_equal node, actual
+      end
+
+      test "#on_send does not transform the AST into assert_equal if rhs is test_index" do
+        node = s(:send, nil, 1, :==, s(:send, nil, :test_index))
+
+        actual = @transformation.on_send(node)
+
+        assert_equal node, actual
+      end
     end
   end
 end
