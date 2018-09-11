@@ -17,6 +17,10 @@ module ASTTransform
 
     def transform_file(file_path, transformed_file_path)
       source = File.read(file_path)
+      transform_file_source(source, file_path, transformed_file_path)
+    end
+
+    def transform_file_source(source, file_path, transformed_file_path)
       source_ast = build_ast(source, file_path: file_path)
       # At this point, the transformed_ast contains line number mappings for the original +source+.
       transformed_ast = transform_ast(source_ast)
