@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'test_helper'
+require 'transformation_helper'
 require 'ast_transform/transformation_helper'
 require 'rspock/ast/where_block'
 
@@ -92,6 +93,17 @@ module RSpock
         expected = [
           [s(:int, 1), s(:int, 2)],
           [s(:int, 1), s(:int, 2), s(:send, nil, :method_call)],
+        ]
+
+        assert_equal expected, @block.data
+      end
+
+      test "#data pipes works when subtracting from nodes" do
+        @block.children << s(:send, s(:send, nil, :a), :|, s(:send, nil, :b))
+        @block.children << s(:send, s(:send, s(:int, 2), :-, s(:int, 1)), :|, s(:int, 2))
+
+        expected = [
+          [ s(:send, s(:int, 2), :-, s(:int, 1)), s(:int, 2)],
         ]
 
         assert_equal expected, @block.data

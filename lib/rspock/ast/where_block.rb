@@ -66,12 +66,15 @@ module RSpock
 
       def data_pipe_node?(node, data)
         return false if node.nil?
+        return false unless node.type == :send && node.children.count == 3 && node.children[1] == :|
 
-        node.type == :send &&
-          node.children.count == 3 &&
-          (data_pipe_node?(node.children[0], data) || terminal_data_node?(node.children[0], data)) &&
-          node.children[1] == :| &&
+        unless data_pipe_node?(node.children[0], data)
+          terminal_data_node?(node.children[0], data)
+        end
+
+        unless data_pipe_node?(node.children[2], data)
           terminal_data_node?(node.children[2], data)
+        end
       end
 
       def terminal_data_node?(node, data)
