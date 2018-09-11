@@ -39,7 +39,7 @@ module RSpock
     private
 
     def source_mapped_backtrace(e)
-      e.backtrace_locations.map(&method(:location_builder))
+      e.backtrace_locations&.map(&method(:location_builder))
     end
 
     def location_builder(location)
