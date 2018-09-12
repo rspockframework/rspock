@@ -220,7 +220,7 @@ Let's be honest, at some point you will need to debug your tests. Because RSpock
 
 RSpock supports Source Mapping so that backtraces for the executed code point to the correct line numbers in your source code, and so that the correct files are referenced. This is achieved through wrapping the executed code in rescue blocks, processing the backtraces (source mapping) and re-raising the error.
 
-### Tips and tricks
+### Tips and Tricks
 
 #### test_index
 
@@ -245,8 +245,8 @@ end
 
 A few notes:
 
-* Comparison with test_index is not transformed to assertions in Then and Expect Code Blocks
-* test_index is 0-based
+* Comparison with `test_index` is not transformed to assertions in Then and Expect Code Blocks
+* `test_index` is zero-based, meaning the index of the first test case is `0`
 
 ## More info
 
