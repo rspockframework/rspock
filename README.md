@@ -37,9 +37,11 @@ Or install it yourself as:
 
 ### Rails
 
-If you are using Rails, it is necessary to add a filter to *Rails.backtrace_cleaner* for source mapping to work, so that you get proper line numbers in Minitest backtraces. For your convenience, we've built a Rails Generator just for that:
+If you are using Rails, it is necessary to add a filter to *Rails.backtrace_cleaner* for [source mapping](#backtraces) to work, so that you get proper line numbers in Minitest backtraces. For your convenience, we've built a Rails Generator just for that:
 
     $ rails g rspock:install
+
+Note: If you are not using Rails, you don't have anything to do, as RSpock includes a Minitest plugin that will set its own backtrace filter.
 
 ## Usage
 
@@ -208,6 +210,44 @@ Note: Although the Where block is declared last, it is evaluated first. This mea
 
 You might have noticed above that the test name contains interpolations, that's one of the features of RSpock! You can interpolate test names and use Where block header variables to parameterize the test name using the test data.
 
+## Debugging
+
+### Pry
+
+Let's be honest, at some point you will need to debug your tests. Because RSpock requires transforming the AST, the executed code is slightly different from the source code that you wrote. Although we have plans to add Source Mapping support in Pry so that you can see the exact source code you wrote, this is not currently available. This means that code shown in the Pry console will be slightly different. We think the value of using RSpock greatly outweighs this current limitation. We encourage you to try debugging a test to see what the transformed code looks like, or look through `tmp/rspock` for the transformed files.
+
+### Backtraces
+
+RSpock supports Source Mapping so that backtraces for the executed code point to the correct line numbers in your source code, and so that the correct files are referenced. This is achieved through wrapping the executed code in rescue blocks, processing the backtraces (source mapping) and re-raising the error.
+
+### Tips and tricks
+
+#### test_index
+
+The generated test name for each test case will contain the test index, corresponding to the Where Block data row for that case, which is available in the test scope as `test_index`. This can be leveraged to conditionally break on certain test cases, so that you can have a more granular debugging session.
+
+```ruby
+test "Adding #{a} and #{b} results in #{c}" do
+  When "Adding two numbers"
+  actual = a + b
+
+  Then "We get the expected result"
+  # Breaks on the first test case
+  binding.pry if test_index == 0
+  actual == c
+
+  Where
+  a | b | c
+  1 | 2 | 3
+  4 | 5 | 9
+end
+```
+
+A few notes:
+
+* Comparison with test_index is not transformed to assertions in Then and Expect Code Blocks
+* test_index is 0-based
+
 ## More info
 
 ### RSpock Syntax Pre-Processor
@@ -221,7 +261,7 @@ end
 
 RSpock, although having valid Ruby syntax, has different semantics in certain contexts, so that we can offer a more expressive and readable syntax. As such, we perform AST transformations on the code to produce semantically valid-in-context Ruby code.
 
-This is achieved by the `transform!` "method call" above. This doesn't actually call anything, it instead is an annotation exposed by the `ast_transform` module that picks up whatever AST transformations are passed and runs them before compilation into Ruby instructions. The transformations required by RSpock are encapsulated in `RSpock::AST::Transformation`.
+This is achieved by the `transform!` "method call" above. This doesn't actually call anything, it instead is an annotation exposed by the `ast_transform` module that picks up whatever AST transformations are passed as arguments and runs them before compilation into Ruby instructions. The transformations required by RSpock are encapsulated in `RSpock::AST::Transformation`.
 
 ## Development
 
