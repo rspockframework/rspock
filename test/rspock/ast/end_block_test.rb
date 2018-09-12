@@ -11,6 +11,10 @@ module RSpock
         @block = RSpock::AST::EndBlock.new
       end
 
+      test "#node_container? returns false by default" do
+        assert_equal false, @block.node_container?
+      end
+
       test "#successors returns empty array" do
         assert_equal [], @block.successors
       end

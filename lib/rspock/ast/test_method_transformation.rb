@@ -7,12 +7,11 @@ require 'rspock/ast/test_index_nodes_transformation'
 module RSpock
   module AST
     class TestMethodTransformation < ASTTransform::AbstractTransformation
-      class BlockError < StandardError; end
-
-      def initialize(source_map, start_block_class, end_block_class)
+      def initialize(source_map, start_block_class, end_block_class, strict: true)
         @source_map = source_map
         @start_block_class = start_block_class
         @end_block_class = end_block_class
+        @strict = strict
         @blocks = []
       end
 
@@ -24,7 +23,10 @@ module RSpock
       private
 
       def parse(node)
-        add_block(@start_block_class.new(node))
+        start_block = @start_block_class.new(node)
+        start_block.node_container = !@strict
+
+        add_block(start_block)
         test_method_nodes(node).each { |n| parse_node(n) }
         add_block(@end_block_class.new)
         nil
@@ -87,10 +89,8 @@ module RSpock
       end
 
       def add_block(block)
-        scope = current_scope
-
-        if scope && !scope.successors.include?(block.type)
-          raise RSpock::AST::TestMethodTransformation::BlockError, error_msg(scope)
+        if current_scope && !current_scope.valid_successor?(block)
+          raise RSpock::AST::BlockError, current_scope.succession_error_msg
         end
 
         @blocks << block
@@ -106,26 +106,12 @@ module RSpock
         if @source_map.key?(node.children[1])
           add_block(build_block(node))
         else
-          scope = current_scope
-          if scope.type == first_scope.type
-            raise RSpock::AST::TestMethodTransformation::BlockError, error_msg(scope)
-          end
-
-          scope.children << node
+          current_scope << node
         end
       end
 
       def build_block(node)
         @source_map[node.children[1]].new(node)
-      end
-
-      def error_msg(scope)
-        range = scope.node&.loc&.expression || "?"
-        if scope.type == first_scope.type
-          "Test method @ #{range} must start with one of these Blocks: #{scope.successors}"
-        else
-          "Block #{scope.type} @ #{range} must be followed by one of these Blocks: #{scope.successors}"
-        end
       end
 
       def where_block
@@ -136,10 +122,10 @@ module RSpock
         ast = s(:kwbegin,
                 s(:ensure,
                   s(:begin,
-                    *@blocks.select { |block| [:Given, :When, :Then, :Expect].include?(block.type) }
-                      .map { |block| block.to_children_ast }.flatten,
+                    *@blocks.select { |block| [:Start, :Given, :When, :Then, :Expect].include?(block.type) }
+                      .map { |block| block.children }.flatten,
                     ),
-                  *@blocks.select { |block| block.type == :Cleanup }.first&.to_children_ast
+                  *@blocks.select { |block| block.type == :Cleanup }.first&.children
                 )
               )
         ast = TestIndexNodesTransformation.new.run(ast)

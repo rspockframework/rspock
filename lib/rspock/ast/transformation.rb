@@ -22,11 +22,17 @@ module RSpock
         Where: RSpock::AST::WhereBlock,
       }
 
-      def initialize(start_block_class: StartBlock, end_block_class: EndBlock, source_map: DefaultSourceMap)
+      def initialize(
+        start_block_class: StartBlock,
+        end_block_class: EndBlock,
+        source_map: DefaultSourceMap,
+        strict: true
+      )
         super()
         @start_block_class = start_block_class
         @source_map = source_map
         @end_block_class = end_block_class
+        @strict = strict
       end
 
       EXTEND_RSPOCK_DECLARATIVE = s(:send, nil, :extend,
@@ -84,7 +90,12 @@ module RSpock
           return node.updated(nil, process_all(node))
         end
 
-        TestMethodTransformation.new(@source_map, @start_block_class, @end_block_class).run(node)
+        TestMethodTransformation.new(
+          @source_map,
+          @start_block_class,
+          @end_block_class,
+          strict: @strict
+        ).run(node)
       end
     end
   end

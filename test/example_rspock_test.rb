@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require 'test_helper'
 
-transform!(RSpock::AST::Transformation.new)
+transform!(RSpock::AST::Transformation)
 class ExampleRSpockTest < Minitest::Test
   class << self
     def mul(a, b)

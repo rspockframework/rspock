@@ -13,7 +13,7 @@ module RSpock
         @successors ||= [:Cleanup, :Where, :End].freeze
       end
 
-      def to_children_ast
+      def children
         super.map { |child| ComparisonToAssertionTransformation.new.run(child) }
       end
     end

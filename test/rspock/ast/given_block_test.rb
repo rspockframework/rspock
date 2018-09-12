@@ -11,6 +11,10 @@ module RSpock
         @block = RSpock::AST::GivenBlock.new(nil)
       end
 
+      test "#node_container? returns true by default" do
+        assert_equal true, @block.node_container?
+      end
+
       test "#successors returns the correct successors" do
         assert_equal [:When, :Expect], @block.successors
       end

@@ -21,7 +21,7 @@ module RSpock
           end
         HEREDOC
 
-        error = assert_raises RSpock::AST::TestMethodTransformation::BlockError do
+        error = assert_raises RSpock::AST::BlockError do
           transform(source)
         end
 
@@ -35,11 +35,42 @@ module RSpock
           end
         HEREDOC
 
-        error = assert_raises RSpock::AST::TestMethodTransformation::BlockError do
+        error = assert_raises RSpock::AST::BlockError do
           transform(source)
         end
 
         assert_equal "Test method @ tmp:1:1 must start with one of these Blocks: #{[:Given, :When, :Expect]}", error.message
+      end
+
+      test "first node can be regular code if strict mode is disabled" do
+        @transformation = RSpock::AST::Transformation.new(strict: false)
+
+        source = <<~HEREDOC
+          test "Adding 1 and 2 results in 3" do
+            assert_equal 3, 1 + 2
+          end
+        HEREDOC
+
+        expected = <<~HEREDOC
+          begin
+            test("Adding 1 and 2 results in 3") do
+              begin
+                begin
+                  assert_equal(3, 1 + 2)
+                ensure
+                end
+              rescue StandardError => e
+                ::RSpock::BacktraceFilter.new.filter_exception(e)
+                raise
+              end
+            end
+          rescue StandardError => e
+            ::RSpock::BacktraceFilter.new.filter_exception(e)
+            raise
+          end
+        HEREDOC
+
+        assert_equal strip_end_line(expected), transform(source)
       end
 
       test "first node cannot be a non-starting block" do
@@ -49,7 +80,7 @@ module RSpock
           end
         HEREDOC
 
-        error = assert_raises RSpock::AST::TestMethodTransformation::BlockError do
+        error = assert_raises RSpock::AST::BlockError do
           transform(source)
         end
 
@@ -151,7 +182,7 @@ module RSpock
 
         source_map = { Block1: block1_class, Block2: block2_class }
 
-        error = assert_raises RSpock::AST::TestMethodTransformation::BlockError do
+        error = assert_raises RSpock::AST::BlockError do
           transform(
             source,
             RSpock::AST::Transformation.new(start_block_class: start_block_class, source_map: source_map),
@@ -227,7 +258,7 @@ module RSpock
 
         source_map = { Block1: block1_class, Block2: block2_class }
 
-        assert_raises RSpock::AST::TestMethodTransformation::BlockError do
+        assert_raises RSpock::AST::BlockError do
           transform(
             source,
             RSpock::AST::Transformation.new(start_block_class: start_block_class, source_map: source_map),

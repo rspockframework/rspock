@@ -12,6 +12,10 @@ module RSpock
         @block = RSpock::AST::ThenBlock.new(nil)
       end
 
+      test "#node_container? returns true by default" do
+        assert_equal true, @block.node_container?
+      end
+
       test "#successors returns the correct successors" do
         assert_equal [:Cleanup, :Where, :End], @block.successors
       end
@@ -24,13 +28,11 @@ module RSpock
         assert_equal :Then, @block.type
       end
 
-      test "#to_children_ast returns transformed children when comparing with == or !=" do
-        @block.children = [
-          s(:send, 1, :==, 2),
-          s(:send, 1, :!=, 2)
-        ]
+      test "#children returns transformed children when comparing with == or !=" do
+        @block << s(:send, 1, :==, 2)
+        @block << s(:send, 1, :!=, 2)
 
-        actual = @block.to_children_ast
+        actual = @block.children
         expected = [
           s(:send, nil, :assert_equal, 2, 1),
           s(:send, nil, :refute_equal, 2, 1)

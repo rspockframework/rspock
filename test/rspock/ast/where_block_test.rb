@@ -14,6 +14,10 @@ module RSpock
         @block = RSpock::AST::WhereBlock.new(nil)
       end
 
+      test "#node_container? returns true by default" do
+        assert_equal true, @block.node_container?
+      end
+
       test "#successors returns the correct successors" do
         assert_equal [:End], @block.successors
       end
@@ -27,23 +31,23 @@ module RSpock
       end
 
       test "#header with a single send ast node returns that node's symbol" do
-        @block.children << s(:send, nil, :a)
+        @block << s(:send, nil, :a)
 
         assert_equal [:a], @block.header
       end
 
       test "#header separated by pipes returns each node's symbol" do
-        @block.children << s(:send,
-                             s(:send,
-                               s(:send, nil, :a), :|, s(:send, nil, :b)
-                             ),
-                             :|, s(:send, nil, :c))
+        @block << s(:send,
+                    s(:send,
+                      s(:send, nil, :a), :|, s(:send, nil, :b)
+                    ),
+                    :|, s(:send, nil, :c))
 
         assert_equal [:a, :b, :c], @block.header
       end
 
       test "#header with a single send ast node must be a header node" do
-        @block.children << s(:str, "potato")
+        @block << s(:str, "potato")
 
         assert_raises RSpock::AST::WhereBlock::MalformedError do
           @block.header
@@ -51,7 +55,7 @@ module RSpock
       end
 
       test "#header terminal nodes must be header nodes" do
-        @block.children << s(:send,
+        @block << s(:send,
                              s(:str, "potato"), :|, s(:send, nil, :b))
 
         assert_raises RSpock::AST::WhereBlock::MalformedError do
@@ -60,22 +64,22 @@ module RSpock
       end
 
       test "#data with a single data node returns that data node" do
-        @block.children << s(:send, nil, :a)
-        @block.children << s(:int, 1)
+        @block << s(:send, nil, :a)
+        @block << s(:int, 1)
 
         assert_equal [[s(:int, 1)]], @block.data
       end
 
       test "#data without data nodes returns an empty array" do
-        @block.children << s(:send, nil, :a)
+        @block << s(:send, nil, :a)
 
         assert_equal [], @block.data
       end
 
       test "#data with multiple rows returns multiple rows" do
-        @block.children << s(:send, nil, :a)
-        @block.children << s(:int, 1)
-        @block.children << s(:int, 2)
+        @block << s(:send, nil, :a)
+        @block << s(:int, 1)
+        @block << s(:int, 2)
 
         expected = [
           [s(:int, 1)],
@@ -86,9 +90,9 @@ module RSpock
       end
 
       test "#data pipes returns a flattened array of nodes" do
-        @block.children << s(:send, nil, :a)
-        @block.children << s(:send, s(:int, 1), :|, s(:int, 2))
-        @block.children << s(:send, s(:send, s(:int, 1), :|, s(:int, 2)), :|, s(:send, nil, :method_call))
+        @block << s(:send, nil, :a)
+        @block << s(:send, s(:int, 1), :|, s(:int, 2))
+        @block << s(:send, s(:send, s(:int, 1), :|, s(:int, 2)), :|, s(:send, nil, :method_call))
 
         expected = [
           [s(:int, 1), s(:int, 2)],
@@ -99,8 +103,8 @@ module RSpock
       end
 
       test "#data pipes works when subtracting from nodes" do
-        @block.children << s(:send, s(:send, nil, :a), :|, s(:send, nil, :b))
-        @block.children << s(:send, s(:send, s(:int, 2), :-, s(:int, 1)), :|, s(:int, 2))
+        @block << s(:send, s(:send, nil, :a), :|, s(:send, nil, :b))
+        @block << s(:send, s(:send, s(:int, 2), :-, s(:int, 1)), :|, s(:int, 2))
 
         expected = [
           [ s(:send, s(:int, 2), :-, s(:int, 1)), s(:int, 2)],

@@ -6,6 +6,7 @@ module RSpock
     class EndBlock < Block
       def initialize
         super(:End, nil)
+        @node_container = false
       end
 
       def successors

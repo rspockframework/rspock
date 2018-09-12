@@ -263,6 +263,26 @@ RSpock, although having valid Ruby syntax, has different semantics in certain co
 
 This is achieved by the `transform!` "method call" above. This doesn't actually call anything, it instead is an annotation exposed by the `ast_transform` module that picks up whatever AST transformations are passed as arguments and runs them before compilation into Ruby instructions. The transformations required by RSpock are encapsulated in `RSpock::AST::Transformation`.
 
+### Using RSpock Alongside Regular Minitest Tests
+
+Although we strongly encourage being consistent in your code bases and using only RSpock Tests in the same test file, we understand that there might be a transition period until all tests in a file can be migrated to using RSpock.
+
+To that effect, we support disabling the `strict` mode on the `transform!` annotation:
+
+```ruby
+transform!(RSpock::AST::Transformation.new(strict: false))
+class MyTest < Minitest::Test
+  test "non-RSpock tests work" do
+    assert_equal true, true
+  end
+
+  test "RSpock tests also work" do
+    Expect
+    1 + 2 == 3
+  end
+end
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `bundle exec rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
