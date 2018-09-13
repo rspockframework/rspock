@@ -7,12 +7,12 @@ module ASTTransform
   class Transformation < ASTTransform::AbstractTransformation
     TRANSFORM_AST = s(:send, nil, :transform!)
 
-    def process(node)
-      return node unless node.is_a?(Parser::AST::Node)
+    private
 
+    def process_node(node)
       children = node.children.map.with_index do |child_node, index|
         previous_sibling = previous_child(node, index)
-        process_node(child_node, previous_sibling)
+        process_node_helper(child_node, previous_sibling)
       end
 
       children.reject! { |child_node| transform_node?(child_node) }
@@ -20,13 +20,11 @@ module ASTTransform
       node.updated(nil, process_all(children))
     end
 
-    private
-
     def previous_child(node, index)
       index > 0 ? node.children[index - 1] : nil
     end
 
-    def process_node(node, previous_node)
+    def process_node_helper(node, previous_node)
       if transform_node?(previous_node) && transformable_node?(node)
         transformations = extract_transformations(previous_node)
         ASTTransform::Transformer.new(*transformations).transform_ast(node)
