@@ -6,7 +6,7 @@ require 'parser/current'
 
 module RSpock
   module AST
-    class TestClassTransformationTest < Minitest::Test
+    class TransformationTest < Minitest::Test
       extend RSpock::Declarative
       include ASTTransform::TransformationHelper
 
