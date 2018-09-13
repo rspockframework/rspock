@@ -20,7 +20,7 @@ module RSpock
         Expect: RSpock::AST::ExpectBlock,
         Cleanup: RSpock::AST::CleanupBlock,
         Where: RSpock::AST::WhereBlock,
-      }
+      }.freeze
 
       def initialize(
         start_block_class: StartBlock,
