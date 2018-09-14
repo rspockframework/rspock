@@ -118,7 +118,7 @@ module ASTTransform
       source = <<~HEREDOC
         transform!(ASTTransform::TransformationTest::ClassNamePrefixerTransformation)
         class Foo
-          transform!(ASTTransform::TransformationTest::ClassNamePrefixerTransformation)
+          transform!(ASTTransform::TransformationTest::FooTransformation)
           class Bar
           end
         end
@@ -126,8 +126,7 @@ module ASTTransform
 
       expected = <<~HEREDOC
         class PrefixFoo
-          class PrefixBar
-          end
+          foo
         end
       HEREDOC
 
