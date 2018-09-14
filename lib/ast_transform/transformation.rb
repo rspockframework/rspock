@@ -15,13 +15,19 @@ module ASTTransform
         process_node_helper(child_node, previous_sibling)
       end
 
-      children.reject! { |child_node| transform_node?(child_node) }
+      children.reject!.with_index { |child_node, index|
+        transform_node?(child_node) && transformable_node?(next_child(node, index))
+      }
 
       node.updated(nil, process_all(children))
     end
 
     def previous_child(node, index)
       index > 0 ? node.children[index - 1] : nil
+    end
+
+    def next_child(node, index)
+      index >= 0 ? node.children[index + 1] : nil
     end
 
     def process_node_helper(node, previous_node)
