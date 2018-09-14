@@ -22,10 +22,10 @@ module ASTTransform
       def process_node(node)
         return node unless node.type == :class
 
-        on_class(node)
+        process_class_node(node)
       end
 
-      def on_class(node)
+      def process_class_node(node)
         children = node.children.dup
         children[0] = children[0].updated(nil, [nil, "Prefix#{node.children[0].children[1]}".to_sym])
 
