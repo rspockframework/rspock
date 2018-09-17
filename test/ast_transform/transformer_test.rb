@@ -39,17 +39,20 @@ module ASTTransform
 
     def setup
       @transformer = ASTTransform::Transformer.new
+      @multi_transformer = ASTTransform::Transformer.new(
+        MethodCallToFooTransformation.new, FooToBarTransformation.new, BarToFooBarTransformation.new
+      )
 
       @source = <<~CODE
         method_call
       CODE
 
-      @expected_ast = s(:send, nil, :method_call)
+      @source_ast = s(:send, nil, :method_call)
     end
 
     test "#build_ast returns the expected AST" do
       ast = @transformer.build_ast(@source)
-      assert_equal @expected_ast, ast
+      assert_equal @source_ast, ast
     end
 
     test "#build_ast_from_file returns the expected AST" do
@@ -62,7 +65,7 @@ module ASTTransform
 
       ast = @transformer.build_ast_from_file(pathname.to_s)
 
-      assert_equal @expected_ast, ast
+      assert_equal @source_ast, ast
     ensure
       File.delete(pathname.to_s) if File.exists?(pathname.to_s)
     end
@@ -72,18 +75,10 @@ module ASTTransform
     end
 
     test "#transform with multiple transformations" do
-      @transformer = ASTTransform::Transformer.new(
-        MethodCallToFooTransformation.new, FooToBarTransformation.new, BarToFooBarTransformation.new
-      )
-
-      assert_equal 'foo_bar', @transformer.transform(@source)
+      assert_equal 'foo_bar', @multi_transformer.transform(@source)
     end
 
     test "#transform_file returns the expected transformed code" do
-      @transformer = ASTTransform::Transformer.new(
-        MethodCallToFooTransformation.new, FooToBarTransformation.new, BarToFooBarTransformation.new
-      )
-
       pathname = Pathname.new('').join('tmp', 'test', 'ast_transform', 'transformer_test.rb')
       transformed_pathname = Pathname.new('').join('tmp', 'test', 'ast_transform', 'transformed_transformer_test.rb')
 
@@ -92,7 +87,7 @@ module ASTTransform
         file.write(@source)
       end
 
-      transformed_source = @transformer.transform_file(pathname.to_s, transformed_pathname.to_s)
+      transformed_source = @multi_transformer.transform_file(pathname.to_s, transformed_pathname.to_s)
 
       assert_equal 'foo_bar', transformed_source
     ensure
@@ -100,10 +95,6 @@ module ASTTransform
     end
 
     test "#transform_file_source returns the expected transformed code" do
-      @transformer = ASTTransform::Transformer.new(
-        MethodCallToFooTransformation.new, FooToBarTransformation.new, BarToFooBarTransformation.new
-      )
-
       pathname = Pathname.new('').join('tmp', 'test', 'ast_transform', 'transformer_test.rb')
       transformed_pathname = Pathname.new('').join('tmp', 'test', 'ast_transform', 'transformed_transformer_test.rb')
 
@@ -112,11 +103,21 @@ module ASTTransform
         file.write(@source)
       end
 
-      transformed_source = @transformer.transform_file_source(@source, pathname.to_s, transformed_pathname.to_s)
+      transformed_source = @multi_transformer.transform_file_source(@source, pathname.to_s, transformed_pathname.to_s)
 
       assert_equal 'foo_bar', transformed_source
     ensure
       File.delete(pathname.to_s) if File.exists?(pathname.to_s)
+    end
+
+    test "#transform_ast with no transformation" do
+      assert_same @source_ast, @transformer.transform_ast(@source_ast)
+    end
+
+    test "#transform_ast with multiple transformations" do
+      expected_ast = s(:send, nil, :foo_bar)
+
+      assert_equal expected_ast, @multi_transformer.transform_ast(@source_ast)
     end
   end
 end
