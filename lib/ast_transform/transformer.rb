@@ -9,6 +9,16 @@ module ASTTransform
       @transformations = transformations
     end
 
+    def build_ast(source, file_path: nil)
+      buffer = create_buffer(source, file_path)
+      parser.parse(buffer)
+    end
+
+    def build_ast_from_file(file_path)
+      source = File.read(file_path)
+      build_ast(source, file_path: file_path)
+    end
+
     def transform(source)
       ast = build_ast(source)
       transformed_ast = transform_ast(ast)
@@ -39,12 +49,6 @@ module ASTTransform
     end
 
     private
-
-    def build_ast(source, transformation = nil, file_path: nil)
-      buffer = create_buffer(source, file_path)
-      ast = parser.parse(buffer)
-      transformation&.run(ast) || ast
-    end
 
     def create_buffer(source, file_path = nil)
       buffer = Parser::Source::Buffer.new(file_path || "tmp")

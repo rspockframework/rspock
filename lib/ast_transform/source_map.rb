@@ -48,9 +48,10 @@ module ASTTransform
 
       @lines = Hash.new { |hash, key| hash[key] = [] }
       extract_source_map_data(@transformed_ranges_ast, [])
+      @source_map = build_source_map.freeze
     end
 
-    attr_reader :source_file_path, :transformed_file_path
+    attr_reader :source_file_path, :transformed_file_path, :source_map
 
     # Retrieves the mapped line number for the given +line_number+.
     #
@@ -58,14 +59,14 @@ module ASTTransform
     #
     # @return [Integer|nil] The mapped line number, otherwise nil if not found.
     def line(line_number)
-      if @lines.key?(line_number)
-        @lines[line_number].each do |dig_array|
-          result = approximate_dig_last_valid_node(@source_ranges_ast, dig_array)&.loc&.expression&.line
-          return result if result
-        end
-      end
+      @source_map[line_number]
+    end
 
-      nil
+    # Retrieves the line count for the executed code.
+    #
+    # @return [Integer] The line count.
+    def line_count
+      @transformed_ranges_ast&.loc&.expression.last_line || 0
     end
 
     private
@@ -73,6 +74,8 @@ module ASTTransform
     # Extracts SourceMap data from the given node.
     #
     # @param node [Parser::AST::Node] The node containing ranges for the executed code.
+    #
+    # @return [void]
     def extract_source_map_data(node, indexes)
       return false unless node&.is_a?(Parser::AST::Node)
 
@@ -84,6 +87,29 @@ module ASTTransform
 
       node.children.each.with_index do |child, index|
         extract_source_map_data(child, indexes.dup << index)
+      end
+
+      nil
+    end
+
+    # Builds the source map.
+    #
+    # @return [Hash] A Hash containing line numbers from executed code to source code.
+    def build_source_map
+      (1..line_count).each.with_object({}) {|it, hash| hash[it] = source_line(it) }
+    end
+
+    # Retrieves the source line for the given +line_number+ in the executed code.
+    #
+    # @param line_number [Integer] The line number in the executed code.
+    #
+    # @return [Integer|nil] The line number in the source code, or nil if cannot be mapped.
+    def source_line(line_number)
+      if @lines.key?(line_number)
+        @lines[line_number].each do |dig_array|
+          result = approximate_dig_last_valid_node(@source_ranges_ast, dig_array)&.loc&.expression&.line
+          return result if result
+        end
       end
 
       nil
