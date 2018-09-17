@@ -15,7 +15,7 @@ module ASTTransform
     # Builds the AST for the given +source+.
     #
     # @param source [String] The input source code.
-    # @param file_path [String] The file_path.
+    # @param file_path [String] The file_path. This is important for source mapping in backtraces.
     #
     # @return [Parser::AST::Node] The AST.
     def build_ast(source, file_path: 'tmp')
@@ -46,7 +46,7 @@ module ASTTransform
 
     # Transforms the give +file_path+.
     #
-    # @param file_path [String] The input file to be transformed.
+    # @param file_path [String] The input file to be transformed. This is required for source mapping in backtraces.
     # @param transformed_file_path [String] The file path to the transformed file.
     #
     # @return [String] The transformed code.
@@ -58,8 +58,9 @@ module ASTTransform
     # Transforms the given +source+ in +file_path+.
     #
     # @param source [String] The input source code to be transformed.
-    # @param file_path [String] The file path for the input +source+.
-    # @param transformed_file_path [String] The file path to the transformed filed.
+    # @param file_path [String] The file path for the input +source+. This is required for source mapping in backtraces.
+    # @param transformed_file_path [String] The file path to the transformed filed. This is required to register the
+    # SourceMap.
     #
     # @return [String] The transformed code.
     def transform_file_source(source, file_path, transformed_file_path)
