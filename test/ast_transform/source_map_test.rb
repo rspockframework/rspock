@@ -14,13 +14,13 @@ module ASTTransform
       @transformer = ASTTransform::Transformer.new(transformation)
 
       project_path = File.expand_path('')
-      example_rspock_test_pathname = Pathname.new(project_path).join('test', 'example_rspock_test.rb')
-      source_ast = @transformer.build_ast_from_file(example_rspock_test_pathname.to_s)
+      @example_rspock_test_pathname = Pathname.new(project_path).join('test', 'example_rspock_test.rb')
+      source_ast = @transformer.build_ast_from_file(@example_rspock_test_pathname.to_s)
       transformed_ast_with_source_ranges = @transformer.transform_ast(source_ast)
       transformed_ast_transformed_ranges = @transformer.build_ast(Unparser.unparse(transformed_ast_with_source_ranges))
 
       @source_map = ASTTransform::SourceMap.new(
-        example_rspock_test_pathname.to_s,
+        @example_rspock_test_pathname.to_s,
         'tmp',
         transformed_ast_with_source_ranges,
         transformed_ast_transformed_ranges
@@ -46,6 +46,14 @@ module ASTTransform
 
     test "#line_count returns expected value" do
       assert_equal 65, @source_map.line_count
+    end
+
+    test "#source_file_path returns the expected value" do
+      assert_equal @example_rspock_test_pathname.to_s, @source_map.source_file_path
+    end
+
+    test "#transformed_file_path returns the expected value" do
+      assert_equal 'tmp', @source_map.transformed_file_path
     end
 
     SOURCE_MAP = {
