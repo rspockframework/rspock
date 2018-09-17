@@ -5,31 +5,63 @@ require 'ast_transform/source_map'
 
 module ASTTransform
   class Transformer
+    # Constructs a new Transformer instance.
+    #
+    # @param transformations [Array<ASTTransform::AbstractTransformation>] The transformations to be run.
     def initialize(*transformations)
       @transformations = transformations
     end
 
-    def build_ast(source, file_path: nil)
+    # Builds the AST for the given +source+.
+    #
+    # @param source [String] The input source code.
+    # @param file_path [String] The file_path.
+    #
+    # @return [Parser::AST::Node] The AST.
+    def build_ast(source, file_path: 'tmp')
       buffer = create_buffer(source, file_path)
       parser.parse(buffer)
     end
 
+    # Builds the AST for the given +file_path+.
+    #
+    # @param file_path [String] The input file path.
+    #
+    # @return [Parser::AST::Node] The AST.
     def build_ast_from_file(file_path)
       source = File.read(file_path)
       build_ast(source, file_path: file_path)
     end
 
+    # Transforms the given +source+.
+    #
+    # @param source [String] The input source code to be transformed.
+    #
+    # @return [String] The transformed code.
     def transform(source)
       ast = build_ast(source)
       transformed_ast = transform_ast(ast)
       Unparser.unparse(transformed_ast)
     end
 
+    # Transforms the give +file_path+.
+    #
+    # @param file_path [String] The input file to be transformed.
+    # @param transformed_file_path [String] The file path to the transformed file.
+    #
+    # @return [String] The transformed code.
     def transform_file(file_path, transformed_file_path)
       source = File.read(file_path)
       transform_file_source(source, file_path, transformed_file_path)
     end
 
+    # Transforms the given +source+ in +file_path+.
+    #
+    # @param source [String] The input source code to be transformed.
+    # @param file_path [String] The file path for the input +source+.
+    # @param transformed_file_path [String] The file path to the transformed filed.
+    #
+    # @return [String] The transformed code.
     def transform_file_source(source, file_path, transformed_file_path)
       source_ast = build_ast(source, file_path: file_path)
       # At this point, the transformed_ast contains line number mappings for the original +source+.
@@ -42,6 +74,11 @@ module ASTTransform
       transformed_source
     end
 
+    # Transforms the given +ast+.
+    #
+    # @param ast [Parser::AST::Node] The input AST to be transformed.
+    #
+    # @return [Parser::AST::Node] The transformed AST.
     def transform_ast(ast)
       @transformations.inject(ast) do |ast, transformation|
         transformation.run(ast)
@@ -50,8 +87,8 @@ module ASTTransform
 
     private
 
-    def create_buffer(source, file_path = nil)
-      buffer = Parser::Source::Buffer.new(file_path || "tmp")
+    def create_buffer(source, file_path)
+      buffer = Parser::Source::Buffer.new(file_path)
       buffer.source = source.dup.force_encoding(parser.default_encoding)
 
       buffer
