@@ -6,3 +6,5 @@ require 'rspock/declarative'
 
 require 'ast_transform'
 require 'rspock/ast/transformation'
+
+require 'rspock/railtie' if defined?(Rails)

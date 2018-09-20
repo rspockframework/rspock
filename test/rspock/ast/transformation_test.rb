@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'test_helper'
+require 'string_helper'
 require 'unparser'
 require 'ast_transform/transformer'
 require 'parser/current'
@@ -9,6 +10,7 @@ module RSpock
     class TransformationTest < Minitest::Test
       extend RSpock::Declarative
       include ASTTransform::TransformationHelper
+      include RSpock::Helpers::StringHelper
 
       def setup
         @transformation = RSpock::AST::Transformation.new
@@ -347,10 +349,6 @@ module RSpock
         transformations << @transformation if transformations.empty?
 
         ASTTransform::Transformer.new(*transformations).transform(source)
-      end
-
-      def strip_end_line(str)
-        str.gsub(/\n$/, '')
       end
     end
   end

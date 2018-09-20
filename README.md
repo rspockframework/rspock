@@ -15,7 +15,6 @@ Note: RSpock is heavily inspired by Spock for the Groovy programming language.
 * Data-driven testing with incredibly expressive table-based Where blocks
 * Expressive assertions: Use familiar comparison operators `==` and `!=` for assertions!
 * (Planned) BDD-style custom reporter that outputs information from Code Blocks
-* (Planned) RSpock syntax pre-processor
 * (Planned) Capture all Then block violations
 * (Planned) Interaction-based testing, i.e. `1 * object.receive("message")` in Then / Expect blocks
 
@@ -34,6 +33,23 @@ And then execute:
 Or install it yourself as:
 
     $ gem install rspock
+
+Add this to the very beginning of your script or application to install the `ASTTransform` hook:
+
+```ruby
+require 'ast_transform'
+ASTTransform.install
+```
+
+If you're in a non-Rails project, add this to your Rakefile to enable the [Truth Table Generator](#truth-table-generator) Rake task:
+
+```ruby
+require 'rspock'
+
+spec = Gem::Specification.find_by_name 'rspock'
+rakefile = "#{spec.gem_dir}/lib/Rakefile"
+load rakefile
+```
 
 ### Rails
 
@@ -192,9 +208,11 @@ test "Adding #{a} and #{b} results in #{c}" do
   a  | b  | c
   -1 | -1 | -2
   -1 | 0  | -1
+  -1 | 1  | 0
   0  | -1 | -1
   0  | 0  | 0
   0  | 1  | 1
+  1  | -1 | 0
   1  | 0  | 1
   1  | 1  | 2
 end
@@ -202,13 +220,66 @@ end
 
 The first row in the Where block is considered the Header. The names of columns will expose a local variable of the same name in the scope of the Feature Method. The header column names have the same constraints as method names in Ruby. Each other row defines one test case that will be generated, binding each column's data to the appropriate variable.
 
-This effectively creates one version of the Feature Method for each data row. Note how we've listed test cases as if this was a truth table, ordering them by boolean increment. This makes it very easy to ensure all cases have been covered.
+This effectively creates one version of the Feature Method for each data row. Note how we've listed test cases as if this was a [truth table](#truth table), ordering them by boolean increment. This makes it very easy to ensure all cases have been covered.
 
-Note: Although the Where block is declared last, it is evaluated first. This means that it cannot access local variables previously defined in the test method. It is evaluated in Class scope, so it is possible to use generators or methods for column values, provided they are class methods, not instance methods.
+**Note**: Although the Where block is declared last, it is evaluated first. This means that it cannot access local variables previously defined in the test method. It is evaluated in Class scope, so it is possible to use generators or methods for column values, provided they are class methods, not instance methods.
+
+> **Tip**: By convention, the `expected_result` or `output` column should be the rightmost column.
 
 ##### Test Name Interpolation
 
-You might have noticed above that the test name contains interpolations, that's one of the features of RSpock! You can interpolate test names and use Where block header variables to parameterize the test name using the test data.
+You might have noticed above that the test name contains string interpolations, that's one of the features of RSpock! You can interpolate test names and use Where block header variables to parameterize the test name using the test data.
+
+##### Truth Table
+
+Formatting Where Blocks as a truth table is the recommended way to organize your Where Blocks in RSpock. It makes test cases more maintainable since it creates an order between the different test cases and makes it easier to spot missing or duplicated test cases. It also makes it easier to add a column:
+* Add your new column to the left with the first possible value
+* Copy all current Where Block's data lines
+* For each other possible value for the column you're adding, paste the copied lines
+* Fill the new column by iterating over its possible values and you're done!
+
+##### Truth Table Generator
+
+Are you a lazy programmer? Good, so are we!
+
+If you end up in a situation where the code under test has many different inputs / states that make it hard to manually generate a Truth Table, or if you simply want to make sure you don't omit test cases, we got you covered! You can use our truth table generator to generate all the different test cases automatically!
+
+Run the following command, listing columns in the order you want them to appear, and their possible values in the order you want them to be iterated on:
+
+    $ rake rspock:truth_table -- a=-1,0,1 b=-1,0,1 expected_result=\'?\'
+
+The above command outputs the following formatted table:
+
+```ruby
+a  | b  | expected_result
+-1 | -1 | '?'
+-1 | 0  | '?'
+-1 | 1  | '?'
+0  | -1 | '?'
+0  | 0  | '?'
+0  | 1  | '?'
+1  | -1 | '?'
+1  | 0  | '?'
+1  | 1  | '?'
+```
+
+> **Tip**: When generating a truth table, we recommend to include the `expected_result` column with only one possible value, which you can then fill manually. Unless of course all your test cases have the same result, in which case you don't need said column.
+
+###### Escaping Delimiter
+
+You may escape the `,` delimiter, which can be useful when i.e. you're calling a method with multiple arguments to generate or build the data for a certain column.
+
+    $ rake rspock:truth_table -- a=0,1 b="generator(1\, 2)","generator(3\, 4)" expected_result=\'?\'
+
+The above command outputs the following formatted table:
+
+```ruby
+a | b               | expected_result
+0 | generator(1, 2) | '?'
+0 | generator(3, 4) | '?'
+1 | generator(1, 2) | '?'
+1 | generator(3, 4) | '?'
+```
 
 ## Debugging
 

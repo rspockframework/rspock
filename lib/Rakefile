@@ -1,0 +1,4 @@
+# lib/Rakefile
+
+path = File.expand_path(__dir__)
+Dir.glob("#{path}/rspock/tasks/**/*.rake").each { |f| import f }
