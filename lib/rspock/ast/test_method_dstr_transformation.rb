@@ -5,7 +5,7 @@ module RSpock
   module AST
     class TestMethodDstrTransformation < ASTTransform::AbstractTransformation
       TEST_INDEX_AST = s(:begin,
-                         s(:lvar, :test_index))
+                         s(:lvar, :_test_index_))
 
       LINE_NUMBER_AST = s(:begin,
                           s(:lvar, :line_number))

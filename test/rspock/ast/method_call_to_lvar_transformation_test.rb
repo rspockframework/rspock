@@ -10,11 +10,11 @@ module RSpock
       include RSpock::Helpers::TransformationHelper
 
       test "#run transforms passed symbol calls into lvar" do
-        transformation = RSpock::AST::MethodCallToLVarTransformation.new(:test_index)
+        transformation = RSpock::AST::MethodCallToLVarTransformation.new(:_test_index_)
 
         ast = s(:begin,
                 s(:send, nil, :a),
-                s(:send, nil, :test_index),
+                s(:send, nil, :_test_index_),
                 s(:send, nil, :b),
                 s(:send, nil, :c))
 
@@ -22,7 +22,7 @@ module RSpock
 
         expected = s(:begin,
                      s(:send, nil, :a),
-                     s(:lvar, :test_index),
+                     s(:lvar, :_test_index_),
                      s(:send, nil, :b),
                      s(:send, nil, :c))
 
@@ -34,7 +34,7 @@ module RSpock
 
         ast = s(:begin,
                 s(:send, nil, :a),
-                s(:send, nil, :test_index),
+                s(:send, nil, :_test_index_),
                 s(:send, nil, :b),
                 s(:send, nil, :c))
 
@@ -42,7 +42,7 @@ module RSpock
 
         expected = s(:begin,
                      s(:send, nil, :a),
-                     s(:send, nil, :test_index),
+                     s(:send, nil, :_test_index_),
                      s(:send, nil, :b),
                      s(:send, nil, :c))
 

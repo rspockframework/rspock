@@ -293,9 +293,9 @@ RSpock supports Source Mapping so that backtraces for the executed code point to
 
 ### Tips and Tricks
 
-#### test_index and line_number
+#### _test_index_ and line_number
 
-The generated test name for each test case will contain the test index and the line number, corresponding to the Where Block data row for that case, which is available in the test scope as `test_index` and `line_number` respectively. This can be leveraged to conditionally break on certain test cases, so that you can have a more granular debugging session.
+The generated test name for each test case will contain the test index and the line number, corresponding to the Where Block data row for that case, which is available in the test scope as `_test_index_` and `line_number` respectively. This can be leveraged to conditionally break on certain test cases, so that you can have a more granular debugging session.
 ```ruby
 test "Adding #{a} and #{b} results in #{c}" do
   When "Adding two numbers"
@@ -303,7 +303,7 @@ test "Adding #{a} and #{b} results in #{c}" do
 
   Then "We get the expected result"
   # Breaks on the first test case
-  binding.pry if test_index == 0
+  binding.pry if _test_index_ == 0
   # Breaks on the second test case
   binding.pry if line_number == 15
   actual == c
@@ -317,8 +317,8 @@ end
 
 A few notes:
 
-* Comparison with `test_index` and `line_number` is not transformed to assertions in Then and Expect Code Blocks
-* `test_index` is zero-based, meaning the index of the first test case is `0`
+* Comparison with `_test_index_` and `line_number` is not transformed to assertions in Then and Expect Code Blocks
+* `_test_index_` is zero-based, meaning the index of the first test case is `0`
 
 #### line_number
 

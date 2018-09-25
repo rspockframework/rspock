@@ -73,7 +73,7 @@ module RSpock
 
         s(:args,
           s(:mlhs, *injected_args),
-          s(:arg, :test_index),
+          s(:arg, :_test_index_),
         )
       end
 
@@ -142,7 +142,7 @@ module RSpock
                   *@blocks.select { |block| block.type == :Cleanup }.first&.children
                 )
               )
-        ast = MethodCallToLVarTransformation.new(:test_index, :line_number).run(ast)
+        ast = MethodCallToLVarTransformation.new(:_test_index_, :line_number).run(ast)
         source_map_rescue_wrapper(ast)
       end
 

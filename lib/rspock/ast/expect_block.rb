@@ -14,7 +14,7 @@ module RSpock
       end
 
       def children
-        super.map { |child| ComparisonToAssertionTransformation.new(:test_index, :line_number).run(child) }
+        super.map { |child| ComparisonToAssertionTransformation.new(:_test_index_, :line_number).run(child) }
       end
     end
   end

@@ -22,7 +22,7 @@ module RSpock
         assert_same ast, actual
       end
 
-      test "#run transforms str into dstr and injects test_index and line_number lvar" do
+      test "#run transforms str into dstr and injects _test_index_ and line_number lvar" do
         ast = s(:send, nil, :test,
                 s(:str, "Test Name"))
 
@@ -30,7 +30,7 @@ module RSpock
 
         expected = s(:send, nil, :test,
                      s(:dstr,
-                       s(:begin, s(:lvar, :test_index)),
+                       s(:begin, s(:lvar, :_test_index_)),
                        s(:str, " line "),
                        s(:begin, s(:lvar, :line_number)),
                        s(:str, " "),
@@ -39,7 +39,7 @@ module RSpock
         assert_equal expected, actual
       end
 
-      test "#run injects test_index and line_number lvar into dstr" do
+      test "#run injects _test_index_ and line_number lvar into dstr" do
         ast = s(:send, nil, :test,
                 s(:dstr,
                   s(:begin, s(:lvar, :a)),
@@ -49,7 +49,7 @@ module RSpock
 
         expected = s(:send, nil, :test,
                      s(:dstr,
-                       s(:begin, s(:lvar, :test_index)),
+                       s(:begin, s(:lvar, :_test_index_)),
                        s(:str, " line "),
                        s(:begin, s(:lvar, :line_number)),
                        s(:str, " "),
