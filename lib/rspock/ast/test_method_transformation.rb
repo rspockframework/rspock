@@ -69,7 +69,7 @@ module RSpock
 
       def build_where_block_args(header)
         injected_args = header.map { |column| s(:arg, column) }
-        injected_args << s(:arg, :line_number)
+        injected_args << s(:arg, :_line_number_)
 
         s(:args,
           s(:mlhs, *injected_args),
@@ -142,7 +142,7 @@ module RSpock
                   *@blocks.select { |block| block.type == :Cleanup }.first&.children
                 )
               )
-        ast = MethodCallToLVarTransformation.new(:_test_index_, :line_number).run(ast)
+        ast = MethodCallToLVarTransformation.new(:_test_index_, :_line_number_).run(ast)
         source_map_rescue_wrapper(ast)
       end
 

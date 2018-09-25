@@ -9,7 +9,7 @@ module RSpock
       include ASTTransform::TransformationHelper
 
       def setup
-        @transformation = RSpock::AST::ComparisonToAssertionTransformation.new(:_test_index_, :line_number)
+        @transformation = RSpock::AST::ComparisonToAssertionTransformation.new(:_test_index_, :_line_number_)
         @equal_ast = s(:send, 1, :==, 2)
         @not_equal_ast = s(:send, 1, :!=, 2)
       end
@@ -74,16 +74,16 @@ module RSpock
         assert_equal node, actual
       end
 
-      test "#on_send does not transform the AST into assert_equal if lhs is line_number" do
-        node = s(:send, nil, s(:send, nil, :line_number), :==, 1)
+      test "#on_send does not transform the AST into assert_equal if lhs is _line_number_" do
+        node = s(:send, nil, s(:send, nil, :_line_number_), :==, 1)
 
         actual = @transformation.on_send(node)
 
         assert_equal node, actual
       end
 
-      test "#on_send does not transform the AST into assert_equal if rhs is line_number" do
-        node = s(:send, nil, 1, :==, s(:send, nil, :line_number))
+      test "#on_send does not transform the AST into assert_equal if rhs is _line_number_" do
+        node = s(:send, nil, 1, :==, s(:send, nil, :_line_number_))
 
         actual = @transformation.on_send(node)
 

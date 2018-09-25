@@ -31,7 +31,7 @@ module RSpock
         assert_same ast, actual
       end
 
-      test "#run injects _test_index_ and line_number lvar into dstr" do
+      test "#run injects _test_index_ and _line_number_ lvar into dstr" do
         ast = s(:send, nil, :test,
                 s(:dstr,
                   s(:begin, s(:lvar, :a)),
@@ -43,7 +43,7 @@ module RSpock
                      s(:dstr,
                        s(:begin, s(:lvar, :_test_index_)),
                        s(:str, " line "),
-                       s(:begin, s(:lvar, :line_number)),
+                       s(:begin, s(:lvar, :_line_number_)),
                        s(:str, " "),
                        s(:begin, s(:lvar, :a)),
                        s(:str, "Test Name")))

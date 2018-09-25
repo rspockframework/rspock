@@ -41,9 +41,9 @@ module RSpock
         assert_equal expected, actual
       end
 
-      test "#children ignores _test_index_ and line_number comparisons when comparing with == or !=" do
+      test "#children ignores test_index and _line_number_ comparisons when comparing with == or !=" do
         test_index_ast = s(:send, 1, :==, s(:send, nil, :_test_index_))
-        line_number_ast = s(:send, 1, :!=, s(:send, nil, :line_number))
+        line_number_ast = s(:send, 1, :!=, s(:send, nil, :_line_number_))
 
         @block << test_index_ast
         @block << line_number_ast

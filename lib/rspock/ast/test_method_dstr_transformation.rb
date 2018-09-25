@@ -8,7 +8,7 @@ module RSpock
                          s(:lvar, :_test_index_))
 
       LINE_NUMBER_AST = s(:begin,
-                          s(:lvar, :line_number))
+                          s(:lvar, :_line_number_))
 
       SPACE_STR_AST = s(:str, " ")
 
