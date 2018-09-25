@@ -8,6 +8,13 @@ module RSpock
       TEST_INDEX_AST = s(:begin,
                          s(:lvar, :test_index))
 
+      LINE_NUMBER_AST = s(:begin,
+                         s(:lvar, :line_number))
+
+      SPACE_STR_AST = s(:str, " ")
+
+      LINE_NUMBER_STR_AST = s(:str, " line ")
+
       def run(node)
         return node unless node.type == :send && node.children[0].nil? && node.children[1] == :test
 
@@ -15,7 +22,7 @@ module RSpock
       end
 
       def on_str(node)
-        node.updated(:dstr, [TEST_INDEX_AST, node])
+        node.updated(:dstr, [TEST_INDEX_AST, LINE_NUMBER_STR_AST, LINE_NUMBER_AST, SPACE_STR_AST, node])
       end
 
       def on_dstr(node)

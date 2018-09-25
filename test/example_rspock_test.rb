@@ -44,4 +44,9 @@ class ExampleRSpockTest < Minitest::Test
     mul(1, 2)         | mul(2, 2) | mul(3, 2)
     mul(mul(1, 2), 2) | mul(2, 2) | mul(4, 2)
   end
+
+  test "Without Where Block" do
+    Expect
+    self.class.mul(2, 2) == 4
+  end
 end

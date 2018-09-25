@@ -45,7 +45,7 @@ module ASTTransform
     end
 
     test "#line_count returns expected value" do
-      assert_equal 65, @source_map.line_count
+      assert_equal 81, @source_map.line_count
     end
 
     test "#source_file_path returns the expected value" do
@@ -121,7 +121,23 @@ module ASTTransform
       62 => nil,
       63 => nil,
       64 => nil,
-      65 => nil
+      65 => nil,
+      66 => 48,
+      67 => nil,
+      68 => nil,
+      69 => 50,
+      70 => nil,
+      71 => nil,
+      72 => nil,
+      73 => nil,
+      74 => nil,
+      75 => nil,
+      76 => nil,
+      77 => nil,
+      78 => nil,
+      79 => nil,
+      80 => nil,
+      81 => nil
     }
   end
 end

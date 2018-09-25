@@ -320,8 +320,8 @@ module RSpock
 
         expected = <<~HEREDOC
           begin
-            [[1, 2, 3], [4, 5, 9]].each.with_index do |(a, b, c), test_index|
-              test(\"\#{test_index}\#{\"Adding \"}\#{a}\#{\" and \"}\#{b}\#{\" results in \"}\#{c}\") do
+            [[1, 2, 3, 10], [4, 5, 9, 11]].each.with_index do |(a, b, c, line_number), test_index|
+              test(\"\#{test_index}\#{" line "}\#{line_number}\#{" "}\#{\"Adding \"}\#{a}\#{\" and \"}\#{b}\#{\" results in \"}\#{c}\") do
                 begin
                   begin
                     actual = (a + b)

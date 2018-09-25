@@ -2,7 +2,7 @@
 require 'ast_transform/abstract_transformation'
 require 'rspock/ast/test_method_def_transformation'
 require 'rspock/ast/header_nodes_transformation'
-require 'rspock/ast/test_index_nodes_transformation'
+require 'rspock/ast/method_call_to_lvar_transformation'
 
 module RSpock
   module AST
@@ -46,19 +46,33 @@ module RSpock
         source_map_rescue_wrapper(ast)
       end
 
-      def build_where_block_iterator(row_nodes)
+      def build_where_block_iterator(rows)
         s(:send,
           s(:send,
-            s(:array, *row_nodes.map { |row| s(:array, *row) }),
+            s(:array, *build_where_block_data_rows(rows)),
             :each,
           ),
           :with_index
         )
       end
 
+      def build_where_block_data_rows(rows)
+        rows.map(&method(:build_where_block_data_row))
+      end
+
+      def build_where_block_data_row(row)
+        children = row.dup
+        children << s(:int, row.first&.loc&.expression&.line)
+
+        s(:array, *children)
+      end
+
       def build_where_block_args(header)
+        injected_args = header.map { |column| s(:arg, column) }
+        injected_args << s(:arg, :line_number)
+
         s(:args,
-          s(:mlhs, *header.map { |column| s(:arg, column) }),
+          s(:mlhs, *injected_args),
           s(:arg, :test_index),
         )
       end
@@ -128,7 +142,7 @@ module RSpock
                   *@blocks.select { |block| block.type == :Cleanup }.first&.children
                 )
               )
-        ast = TestIndexNodesTransformation.new.run(ast)
+        ast = MethodCallToLVarTransformation.new(:test_index, :line_number).run(ast)
         source_map_rescue_wrapper(ast)
       end
 

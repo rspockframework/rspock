@@ -7,8 +7,15 @@ module RSpock
       TEST_INDEX_AST = s(:begin,
                          s(:lvar, :test_index))
 
+      LINE_NUMBER_AST = s(:begin,
+                          s(:lvar, :line_number))
+
+      SPACE_STR_AST = s(:str, " ")
+
+      LINE_NUMBER_STR_AST = s(:str, " line ")
+
       def on_dstr(node)
-        children = [TEST_INDEX_AST, *process_all(node)]
+        children = [TEST_INDEX_AST, LINE_NUMBER_STR_AST, LINE_NUMBER_AST, SPACE_STR_AST, *process_all(node)]
         node.updated(nil, children)
       end
     end
