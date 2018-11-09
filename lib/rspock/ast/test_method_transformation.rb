@@ -132,15 +132,20 @@ module RSpock
         @where_block ||= @blocks.detect { |block| block.type == :Where }
       end
 
+      def cleanup_block
+        @cleanup_block ||= @blocks.detect { |block| block.type == :Cleanup }
+      end
+
       def build_test_body
+        ensure_children = [
+          s(:begin,
+            *@blocks.select { |block| [:Start, :Given, :When, :Then, :Expect].include?(block.type) }
+              .map { |block| block.children }.flatten)
+        ]
+        ensure_children << s(:begin, *cleanup_block.children) if cleanup_block
+
         ast = s(:kwbegin,
-                s(:ensure,
-                  s(:begin,
-                    *@blocks.select { |block| [:Start, :Given, :When, :Then, :Expect].include?(block.type) }
-                      .map { |block| block.children }.flatten,
-                    ),
-                  *@blocks.select { |block| block.type == :Cleanup }.first&.children
-                )
+                s(:ensure, *ensure_children)
               )
         ast = MethodCallToLVarTransformation.new(:_test_index_, :_line_number_).run(ast)
         source_map_rescue_wrapper(ast)
