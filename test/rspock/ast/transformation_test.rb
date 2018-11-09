@@ -343,6 +343,46 @@ module RSpock
         assert_equal strip_end_line(expected), transform(source)
       end
 
+      test "test with cleanup block" do
+        source = <<~HEREDOC
+          test "Adding 1 and 2 results in 3" do
+            When "adding 1 and 2 together"
+            actual = 1 + 2
+
+            Then "we get the expected result"
+            actual == 3
+
+            Cleanup
+            method1
+            method2
+          end
+        HEREDOC
+
+        expected = <<~HEREDOC
+          begin
+            test(\"Adding 1 and 2 results in 3\") do
+              begin
+                begin
+                  actual = (1 + 2)
+                  assert_equal(3, actual)
+                ensure
+                  method1
+                  method2
+                end
+              rescue StandardError => e
+                ::RSpock::BacktraceFilter.new.filter_exception(e)
+                raise
+              end
+            end
+          rescue StandardError => e
+            ::RSpock::BacktraceFilter.new.filter_exception(e)
+            raise
+          end
+        HEREDOC
+
+        assert_equal strip_end_line(expected), transform(source)
+      end
+
       private
 
       def transform(source, *transformations)
