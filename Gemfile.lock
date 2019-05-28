@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rspock (0.2.4)
+    rspock (0.2.5)
       ast_transform (~> 0.1)
       parser (~> 2.5)
       unparser (~> 0.4)
