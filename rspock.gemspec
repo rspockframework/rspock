@@ -40,6 +40,6 @@ Gem::Specification.new do |spec|
 
   # Runtime dependencies
   spec.add_runtime_dependency "parser", "~> 2.5"
-  spec.add_runtime_dependency "unparser", "~> 0.2.8"
+  spec.add_runtime_dependency "unparser", "~> 0.4"
   spec.add_runtime_dependency "ast_transform", "~> 0.1.0"
 end
