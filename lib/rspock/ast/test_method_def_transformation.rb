@@ -22,7 +22,7 @@ module RSpock
       end
 
       def on_str(node)
-        node.updated(:dstr, [TEST_INDEX_AST, LINE_NUMBER_STR_AST, LINE_NUMBER_AST, SPACE_STR_AST, node])
+        node.updated(:dstr, [node, SPACE_STR_AST, TEST_INDEX_AST, LINE_NUMBER_STR_AST, LINE_NUMBER_AST])
       end
 
       def on_dstr(node)
