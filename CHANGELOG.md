@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Test names now have the test index and line number as suffix instead of prefix.
 
+### Fixed
+- Fixed source mapping for transformed assertion nodes.
+
 ## [0.2.5] 2019-05-28
 ### Fixed
 - Fixed BacktraceFilter so that source mapping works again
