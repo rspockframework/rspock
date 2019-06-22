@@ -54,21 +54,8 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          begin
-            test("Adding 1 and 2 results in 3") do
-              begin
-                begin
-                  assert_equal(3, 1 + 2)
-                ensure
-                end
-              rescue StandardError => e
-                ::RSpock::BacktraceFilter.new.filter_exception(e)
-                raise
-              end
-            end
-          rescue StandardError => e
-            ::RSpock::BacktraceFilter.new.filter_exception(e)
-            raise
+          test("Adding 1 and 2 results in 3") do
+            assert_equal(3, 1 + 2)
           end
         HEREDOC
 
@@ -203,7 +190,12 @@ module RSpock
 
         expected = <<~HEREDOC
           Potato = Class.new do
-            extend(RSpock::Declarative)
+            begin
+              extend(RSpock::Declarative)
+            rescue StandardError => e
+              ::RSpock::BacktraceFilter.new.filter_exception(e)
+              raise
+            end
           end
         HEREDOC
 
@@ -219,7 +211,12 @@ module RSpock
 
         expected = <<~HEREDOC
           class Potato
-            extend(RSpock::Declarative)
+            begin
+              extend(RSpock::Declarative)
+            rescue StandardError => e
+              ::RSpock::BacktraceFilter.new.filter_exception(e)
+              raise
+            end
           end
         HEREDOC
 
@@ -280,22 +277,9 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          begin
-            test(\"Adding 1 and 2 results in 3\") do
-              begin
-                begin
-                  actual = (1 + 2)
-                  assert_equal(3, actual)
-                ensure
-                end
-              rescue StandardError => e
-                ::RSpock::BacktraceFilter.new.filter_exception(e)
-                raise
-              end
-            end
-          rescue StandardError => e
-            ::RSpock::BacktraceFilter.new.filter_exception(e)
-            raise
+          test(\"Adding 1 and 2 results in 3\") do
+            actual = (1 + 2)
+            assert_equal(3, actual)
           end
         HEREDOC
 
@@ -319,24 +303,11 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          begin
-            [[1, 2, 3, 10], [4, 5, 9, 11]].each.with_index do |(a, b, c, _line_number_), _test_index_|
-              test(\"\#{\"Adding \"}\#{a}\#{\" and \"}\#{b}\#{\" results in \"}\#{c}\#{" "}\#{_test_index_}\#{" line "}\#{_line_number_}\") do
-                begin
-                  begin
-                    actual = (a + b)
-                    assert_equal(c, actual)
-                  ensure
-                  end
-                rescue StandardError => e
-                  ::RSpock::BacktraceFilter.new.filter_exception(e)
-                  raise
-                end
-              end
+          [[1, 2, 3, 10], [4, 5, 9, 11]].each.with_index do |(a, b, c, _line_number_), _test_index_|
+            test(\"\#{\"Adding \"}\#{a}\#{\" and \"}\#{b}\#{\" results in \"}\#{c}\#{" "}\#{_test_index_}\#{" line "}\#{_line_number_}\") do
+              actual = (a + b)
+              assert_equal(c, actual)
             end
-          rescue StandardError => e
-            ::RSpock::BacktraceFilter.new.filter_exception(e)
-            raise
           end
         HEREDOC
 
@@ -359,24 +330,14 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          begin
-            test(\"Adding 1 and 2 results in 3\") do
-              begin
-                begin
-                  actual = (1 + 2)
-                  assert_equal(3, actual)
-                ensure
-                  method1
-                  method2
-                end
-              rescue StandardError => e
-                ::RSpock::BacktraceFilter.new.filter_exception(e)
-                raise
-              end
+          test(\"Adding 1 and 2 results in 3\") do
+            begin
+              actual = (1 + 2)
+              assert_equal(3, actual)
+            ensure
+              method1
+              method2
             end
-          rescue StandardError => e
-            ::RSpock::BacktraceFilter.new.filter_exception(e)
-            raise
           end
         HEREDOC
 

@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [UNRELEASED]
 ### Changed
 - Test names now have the test index and line number as suffix instead of prefix.
+- Cleanup transformed code output.
 
 ### Fixed
 - Fixed source mapping for transformed assertion nodes.

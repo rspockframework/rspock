@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 require 'ast_transform/abstract_transformation'
-require 'rspock/ast/test_method_def_transformation'
 require 'rspock/ast/header_nodes_transformation'
 require 'rspock/ast/method_call_to_lvar_transformation'
+require 'rspock/ast/test_method_def_transformation'
 
 module RSpock
   module AST
@@ -34,16 +34,14 @@ module RSpock
 
       def build_ast(node)
         if where_block
-          ast = s(:block,
+          s(:block,
             build_where_block_iterator(where_block.data),
             build_where_block_args(where_block.header),
             build_test_method_def(node)
           )
         else
-          ast = build_test_method_def(node)
+          build_test_method_def(node)
         end
-
-        source_map_rescue_wrapper(ast)
       end
 
       def build_where_block_iterator(rows)
@@ -137,43 +135,22 @@ module RSpock
       end
 
       def build_test_body
-        ensure_children = [
-          s(:begin,
-            *@blocks.select { |block| [:Start, :Given, :When, :Then, :Expect].include?(block.type) }
-              .map { |block| block.children }.flatten)
-        ]
-        ensure_children << s(:begin, *cleanup_block.children) if cleanup_block
 
-        ast = s(:kwbegin,
-                s(:ensure, *ensure_children)
-              )
-        ast = MethodCallToLVarTransformation.new(:_test_index_, :_line_number_).run(ast)
-        source_map_rescue_wrapper(ast)
-      end
+        test_body_children = @blocks.select { |block| [:Start, :Given, :When, :Then, :Expect].include?(block.type) }
+          .map { |block| block.children }
+          .flatten
 
-      def source_map_rescue_wrapper(node)
-        s(:kwbegin,
-          s(:rescue,
-            node,
-            s(:resbody,
-              s(:array,
-                s(:const, nil, :StandardError)
-              ),
-              s(:lvasgn, :e),
-              s(:begin,
-                s(:send,
-                  s(:send,
-                    s(:const,
-                      s(:const,
-                        s(:cbase), :RSpock), :BacktraceFilter), :new), :filter_exception,
-                  s(:lvar, :e)
-                ),
-                s(:send, nil, :raise)
-              )
-            ),
-            nil
+        ast = s(:begin, *test_body_children)
+
+        if cleanup_block && !cleanup_block.children.empty?
+          ensure_node = s(:begin, *cleanup_block.children)
+
+          ast = s(:kwbegin,
+                  s(:ensure, ast, ensure_node)
           )
-        )
+        end
+
+        MethodCallToLVarTransformation.new(:_test_index_, :_line_number_).run(ast)
       end
     end
   end
