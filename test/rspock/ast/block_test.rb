@@ -28,6 +28,22 @@ module RSpock
         end
       end
 
+      test "#unshift adds the given node to the beginning of the Block node_container is true" do
+        @block << 1
+
+        @block.unshift(@node)
+
+        assert_equal [@node, 1], @block.children
+      end
+
+      test "#unshift raises if node_container is false" do
+        @block.node_container = false
+
+        assert_raises RSpock::AST::BlockError do
+          @block.unshift(@node)
+        end
+      end
+
       test "#range returns '?' if node does not contain range information" do
         assert_equal '?', @block.range
       end

@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 require 'test_helper'
 require 'string_helper'
-require 'unparser'
-require 'ast_transform/transformer'
-require 'parser/current'
 
 module RSpock
   module AST
@@ -11,6 +8,7 @@ module RSpock
       extend RSpock::Declarative
       include ASTTransform::TransformationHelper
       include RSpock::Helpers::StringHelper
+      include RSpock::Helpers::TransformationHelper
 
       def setup
         @transformation = RSpock::AST::Transformation.new
@@ -344,12 +342,40 @@ module RSpock
         assert_equal strip_end_line(expected), transform(source)
       end
 
+      test "test with interactions" do
+        source = <<~HEREDOC
+          test "interactions" do
+            Given
+            dep = mock
+            foo = Foo.new(dep)
+        
+            When
+            foo.foo
+        
+            Then
+            0 * dep.bar
+            1 * dep.foo
+          end
+        HEREDOC
+
+        expected = <<~HEREDOC
+          test(\"interactions\") do
+            dep = mock
+            foo = Foo.new(dep)
+            dep.expects(:bar).times(0)
+            dep.expects(:foo).times(1)
+            foo.foo
+          end
+        HEREDOC
+
+        assert_equal strip_end_line(expected), transform(source)
+      end
+
       private
 
       def transform(source, *transformations)
         transformations << @transformation if transformations.empty?
-
-        ASTTransform::Transformer.new(*transformations).transform(source)
+        super(source, *transformations)
       end
     end
   end

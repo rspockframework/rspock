@@ -3,6 +3,19 @@ require 'test_helper'
 
 transform!(RSpock::AST::Transformation)
 class ExampleRSpockTest < Minitest::Test
+  class Foo
+    def initialize(dep)
+      @dep = dep
+    end
+
+    def foo
+      @dep.foo(1)
+      @dep.foo(3)
+      @dep.foo(4)
+      @dep.foo(6)
+    end
+  end
+
   class << self
     def mul(a, b)
       a * b
@@ -48,5 +61,26 @@ class ExampleRSpockTest < Minitest::Test
   test "Without Where Block" do
     Expect
     self.class.mul(2, 2) == 4
+
+    Cleanup
+  end
+
+  test "interactions" do
+    Given
+    dep = mock
+    foo = Foo.new(dep)
+
+    When
+    foo.foo
+
+    Then
+    0 * dep.bar
+    1 * dep.foo(1)
+    _ * dep.foo(2)
+    (1..2) * dep.foo(3)
+    (1...4) * dep.foo(4)
+    (_..2) * dep.foo(5)
+    (1.._) * dep.foo(6)
+    (_.._) * dep.foo(7)
   end
 end

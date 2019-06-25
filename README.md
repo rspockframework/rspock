@@ -14,9 +14,9 @@ Note: RSpock is heavily inspired by Spock for the Groovy programming language.
 * BDD-style code blocks: Given, When, Then, Expect, Cleanup, Where
 * Data-driven testing with incredibly expressive table-based Where blocks
 * Expressive assertions: Use familiar comparison operators `==` and `!=` for assertions!
+* [Interaction-based testing](#mocking-with-interactions), i.e. `1 * object.receive("message")` in Then blocks
 * (Planned) BDD-style custom reporter that outputs information from Code Blocks
 * (Planned) Capture all Then block violations
-* (Planned) Interaction-based testing, i.e. `1 * object.receive("message")` in Then / Expect blocks
 
 ## Installation
 
@@ -279,6 +279,79 @@ a | b               | expected_result
 0 | generator(3, 4) | '?'
 1 | generator(1, 2) | '?'
 1 | generator(3, 4) | '?'
+```
+
+### Mocking with Interactions
+
+Interaction-based testing is a testing practice which focuses on the messages sent to objects, rather than their state. It explores how the object(s) under specification interact, through method calls, with their collaborators.
+
+RSpock allows a natural way of expressing these interactions, using the expected method calls as code directly. An example is worth a thousand words here:
+
+```ruby
+test "#publish sends a message to all subscribers" do
+  Given
+  subscriber1 = Subscriber.new
+  subscriber2 = Subscriber.new
+  publisher = Publisher.new(subscriber1, subscriber2)
+
+  When
+  publisher.publish("message")
+
+  Then
+  1 * subscriber.receive("message")
+  1 * subscriber2.receive("message")
+end
+```
+
+The above ___Then___ block contains 2 interactions, each of which has 4 parts: the _cardinality_, the _receiver_, the _message_ and its _arguments_.
+
+```
+1 * receiver.message('hello')
+|   |          |       |
+|   |          |       argument(s)
+|   |          message
+|   receiver
+cardinality
+```
+
+Note: Interactions are supported in the ___Then___ block only.
+
+#### Cardinality
+
+The cardinality of an interaction describes how often a method is expected to be called. It can be a fixed number of times, or a range.
+
+```ruby
+1 * receiver.message('hello')       # exactly once
+0 * receiver.message('hello')       # must never be called
+(1..3) * receiver.message('hello')  # between one and three times (inclusive)
+(1...4) * receiver.message('hello') # between one and four times (exclusive) => same as (1..3) above
+(1.._) * receiver.message('hello')  # at least once
+(_..3) * receiver.message('hello')  # at most three times
+_ * receiver.message('hello')       # any number of calls, including zero
+```
+
+#### Receiver
+
+The receiver describes which object is expected to receive the method call.
+
+```ruby
+1 * subscriber.receive('hello') # a call to 'subscriber'
+```
+
+#### Message
+
+The message of an interaction describes which method is expected to be called on the receiver.
+
+```ruby
+1 * subscriber.receive('hello') # a method named 'receive'
+```
+
+#### Arguments
+
+The arguments of an interaction describe which arguments of the method call are expected.
+
+```ruby
+1 * subscriber.receive('hello') # an argument that is equal to the String 'hello'
 ```
 
 ## Debugging

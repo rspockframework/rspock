@@ -8,6 +8,8 @@ module RSpock
       extend RSpock::Declarative
       include ASTTransform::TransformationHelper
 
+      INTERACTION_NODE = s(:send, s(:int, 1), :*, s(:send, :receiver, :message))
+
       def setup
         @block = RSpock::AST::ThenBlock.new(nil)
       end
@@ -50,6 +52,38 @@ module RSpock
 
         actual = @block.children
         expected = [test_index_ast, line_number_ast]
+
+        assert_equal expected, actual
+      end
+
+      test "#children ignores interaction nodes" do
+        @block << s(:send, 1, :==, 2)
+        @block << INTERACTION_NODE
+
+        actual = @block.children
+        expected = [
+          s(:send, nil, :assert_equal, 2, 1),
+        ]
+
+        assert_equal expected, actual
+      end
+
+      test "#interactions returns transformed interaction nodes" do
+        @block << s(:send, 1, :==, 2)
+        @block << INTERACTION_NODE
+
+        actual = @block.interactions
+        expected = [
+          s(:send,
+            s(:send,
+              :receiver,
+              :expects,
+              s(:sym, :message)
+            ),
+            :times,
+            s(:int, 1)
+          )
+        ]
 
         assert_equal expected, actual
       end

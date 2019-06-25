@@ -32,14 +32,16 @@ Gem::Specification.new do |spec|
 
   # Development dependencies
   spec.add_development_dependency "bundler", "~> 1.16"
-  spec.add_development_dependency "rake", "~> 12.3"
   spec.add_development_dependency "minitest", "~> 5.0"
   spec.add_development_dependency "minitest-reporters", "~> 1.3"
   spec.add_development_dependency "pry"
   spec.add_development_dependency "pry-byebug"
+  spec.add_development_dependency "rake", "~> 12.3"
 
   # Runtime dependencies
+  spec.add_runtime_dependency "ast_transform", "~> 0.1"
+  spec.add_runtime_dependency "minitest", "~> 5.0"
+  spec.add_runtime_dependency "mocha", "~> 1.0"
   spec.add_runtime_dependency "parser", "~> 2.5"
   spec.add_runtime_dependency "unparser", "~> 0.4"
-  spec.add_runtime_dependency "ast_transform", "~> 0.1"
 end

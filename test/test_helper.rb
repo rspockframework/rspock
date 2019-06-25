@@ -12,6 +12,7 @@ end
 require "minitest"
 require "minitest/spec"
 require "minitest/mock"
+require "mocha/minitest"
 require "minitest/hell" if ENV["MT_HELL"]
 
 # Minitest Reporters

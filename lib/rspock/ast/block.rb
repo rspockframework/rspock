@@ -28,6 +28,17 @@ module RSpock
         @children << child_node
       end
 
+      # Adds the given +child_node+ to the beginning of this Block.
+      #
+      # @param child_node [Parser::AST::Node] The node to be added.
+      #
+      # @raise [BlockError] if this Block cannot contain other nodes.
+      def unshift(child_node)
+        raise BlockError, succession_error_msg unless node_container?
+
+        @children.unshift(child_node)
+      end
+
       # Checks whether this Block can contain other nodes.
       #
       # @return [Boolean] True if this Block can contain other nodes, false otherwise.

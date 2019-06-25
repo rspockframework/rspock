@@ -126,6 +126,14 @@ module RSpock
         @source_map[node.children[1]].new(node)
       end
 
+      def when_block
+        @when_block ||= @blocks.detect { |block| block.type == :When }
+      end
+
+      def then_block
+        @then_block ||= @blocks.detect { |block| block.type == :Then }
+      end
+
       def where_block
         @where_block ||= @blocks.detect { |block| block.type == :Where }
       end
@@ -135,6 +143,7 @@ module RSpock
       end
 
       def build_test_body
+        then_block&.interactions&.reverse&.each { |interaction| when_block.unshift(interaction) }
 
         test_body_children = @blocks.select { |block| [:Start, :Given, :When, :Then, :Expect].include?(block.type) }
           .map { |block| block.children }
