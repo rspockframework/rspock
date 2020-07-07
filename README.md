@@ -246,7 +246,7 @@ If you end up in a situation where the code under test has many different inputs
 
 Run the following command, listing columns in the order you want them to appear, and their possible values in the order you want them to be iterated on:
 
-    $ rake rspock:truth_table -- a=-1,0,1 b=-1,0,1 expected_result=\'?\'
+    $ rake rspock:truth_table -- a=-1,0,1 b=-1,0,1 expected_result="'?'"
 
 The above command outputs the following formatted table:
 
@@ -269,7 +269,7 @@ a  | b  | expected_result
 
 You may escape the `,` delimiter, which can be useful when i.e. you're calling a method with multiple arguments to generate or build the data for a certain column.
 
-    $ rake rspock:truth_table -- a=0,1 b="generator(1\, 2)","generator(3\, 4)" expected_result=\'?\'
+    $ rake rspock:truth_table -- a=0,1 b="generator(1\, 2)","generator(3\, 4)" expected_result="'?'"
 
 The above command outputs the following formatted table:
 
