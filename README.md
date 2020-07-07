@@ -220,7 +220,7 @@ end
 
 The first row in the Where block is considered the Header. The names of columns will expose a local variable of the same name in the scope of the Feature Method. The header column names have the same constraints as method names in Ruby. Each other row defines one test case that will be generated, binding each column's data to the appropriate variable.
 
-This effectively creates one version of the Feature Method for each data row. Note how we've listed test cases as if this was a [truth table](#truth table), ordering them by boolean increment. This makes it very easy to ensure all cases have been covered.
+This effectively creates one version of the Feature Method for each data row. Note how we've listed test cases as if this was a [truth table](#truth-table), ordering them by boolean increment. This makes it very easy to ensure all cases have been covered.
 
 **Note**: Although the Where block is declared last, it is evaluated first. This means that it cannot access local variables previously defined in the test method. It is evaluated in Class scope, so it is possible to use generators or methods for column values, provided they are class methods, not instance methods.
 
