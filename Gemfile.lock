@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     rspock (0.2.5)
-      ast_transform (~> 0.1)
+      ast_transform (~> 1.0.0.pre.alpha.pre)
       minitest (~> 5.0)
       mocha (~> 1.0)
       parser (~> 2.5)
@@ -17,8 +17,8 @@ GEM
       memoizable (~> 0.4.0)
     ansi (1.5.0)
     ast (2.4.1)
-    ast_transform (0.1.4)
-      parser (~> 2.5)
+    ast_transform (1.0.0.pre.alpha.pre.37)
+      parser (~> 2.7)
       unparser (~> 0.4)
     builder (3.2.4)
     byebug (11.1.3)
