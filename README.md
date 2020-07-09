@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/rspockframework/rspock.svg?branch=master)](https://travis-ci.org/rspockframework/rspock)
+[![Coverage Status](https://coveralls.io/repos/github/rspockframework/rspock/badge.svg?branch=master)](https://coveralls.io/github/rspockframework/rspock?branch=master)
 
 # RSpock
 
