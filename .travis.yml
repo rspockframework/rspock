@@ -1,0 +1,23 @@
+language: ruby
+
+rvm:
+  - 2.5
+  - 2.6
+  - 2.7
+
+install: ./bin/setup
+
+jobs:
+  include:
+    - stage: deploy
+      rvm: 2.7
+      install: ./bin/setup
+      script: echo Deploy
+      deploy:
+        provider: rubygems
+        gemspec: rspock.gemspec
+        gem: rspock
+        on:
+          branch: master
+        api_key:
+          secure: k7kDFp663xbs1kdm2ZAELheIA9te0mc9dWKDdoJT3Lcenk+7hWAgv4gsE+YGBWKlrTMfXXZYxPr74zi/q525zGOtrHfj9IO8RYigVYFGWy+haTdTi6ZoNZvmXgIE4iEIcYuR4RV/y/xhaSNX3+Uw6BRbdBGSes90Ze7j2tsQo0aMplBr/AaWm8JtUF7jBOy0P65qyWaDuUV4xtzXSI8vw51v2wjEk1H+/IsF/TbIuxzRVswpeJPumW3R0UDh7I/O+9107sDUjp4IH72/q1OnwYAI0dQLwdvMZ3d9uQtoa12cjDh9SVMKRXiahkhBIXj8ouexUY4IZh+6SdmWYijSJBgrvXpTabpcacSIxk/tFZ8RmcR08xCdJwdtFH3m5l03dDGOMtsSml3TzV3RN4N8dAaBwuW7KKmEgKQdQXKtl1Z/vAwQ7x6hiIrw1QyznngDN1j08ZqxqhByC4PUQYbIHEeQjaNVMydIU0y78YCrYTsPMl3840Rm/+GtfeLmY+x/jCHDzhDlL36PD114J2MmMkkAE8FcnJLJBUxaoiO0BZQ6yu6FBQNbORSNAF72QpYpCW7yWE/YeMKDAgayHw9SXmZA2t3h2iUzgPwo0geAZvxhuUFwWZhIGpvs1EPb45rqeX1g4kYbtrcb02HfHNMKfkcII1jK1Jak0PBZPdmz/P4=
