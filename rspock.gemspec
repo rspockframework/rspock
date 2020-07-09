@@ -31,12 +31,12 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Development dependencies
-  spec.add_development_dependency "bundler", "~> 1.16"
-  spec.add_development_dependency "minitest", "~> 5.0"
-  spec.add_development_dependency "minitest-reporters", "~> 1.3"
-  spec.add_development_dependency "pry"
-  spec.add_development_dependency "pry-byebug"
-  spec.add_development_dependency "rake", "~> 12.3"
+  spec.add_development_dependency "bundler", "~> 2.1"
+  spec.add_development_dependency "minitest", "~> 5.14"
+  spec.add_development_dependency "minitest-reporters", "~> 1.4"
+  spec.add_development_dependency "pry", "~> 0.13"
+  spec.add_development_dependency "pry-byebug", "~> 3.9"
+  spec.add_development_dependency "rake", "~> 13.0"
 
   # Runtime dependencies
   spec.add_runtime_dependency "ast_transform", "~> 0.1"
