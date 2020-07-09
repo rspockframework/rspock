@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rspock (0.2.5)
+    rspock (1.0.0)
       ast_transform (~> 1.0.0.pre.alpha.pre)
       minitest (~> 5.0)
       mocha (~> 1.0)
