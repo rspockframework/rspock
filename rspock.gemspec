@@ -39,7 +39,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 13.0"
 
   # Runtime dependencies
-  spec.add_runtime_dependency "ast_transform", "~> 1.0.0.pre.alpha.pre"
+  spec.add_runtime_dependency "ast_transform", "~> 1.0"
   spec.add_runtime_dependency "minitest", "~> 5.0"
   spec.add_runtime_dependency "mocha", "~> 1.0"
   spec.add_runtime_dependency "parser", "~> 2.5"
