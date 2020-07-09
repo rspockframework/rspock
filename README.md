@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/rspockframework/rspock.svg?branch=master)](https://travis-ci.org/rspockframework/rspock)
+
 # RSpock
 
 RSpock is a testing and specification framework built on top of Minitest. It intends to give back productivity to its users with its incredibly simple yet highly expressive specification language.
