@@ -1,5 +1,7 @@
-PATH
-  remote: ../ast-transform
+GIT
+  remote: https://github.com/rspockframework/ast-transform.git
+  revision: 2f177ecfd775d840c94f8e369cd8f78aeed1520c
+  branch: master
   specs:
     ast_transform (2.0.0)
       parser (>= 3.0)
