@@ -1,15 +1,15 @@
 PATH
   remote: ../ast-transform
   specs:
-    ast_transform (1.0.0)
+    ast_transform (2.0.0)
       parser (>= 3.0)
       unparser (>= 0.6)
 
 PATH
   remote: .
   specs:
-    rspock (1.0.0)
-      ast_transform (~> 1.0)
+    rspock (2.0.0)
+      ast_transform (~> 2.0)
       minitest (~> 5.0)
       mocha (>= 1.0)
       parser (>= 3.0)

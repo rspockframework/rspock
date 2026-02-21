@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/rspockframework/rspock.svg?branch=master)](https://travis-ci.org/rspockframework/rspock)
-[![Coverage Status](https://coveralls.io/repos/github/rspockframework/rspock/badge.svg?branch=master)](https://coveralls.io/github/rspockframework/rspock?branch=master)
+[![CI](https://github.com/rspockframework/rspock/actions/workflows/ci.yml/badge.svg)](https://github.com/rspockframework/rspock/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/rspockframework/rspock/branch/main/graph/badge.svg)](https://codecov.io/gh/rspockframework/rspock)
 
 # RSpock
 
@@ -440,7 +440,35 @@ end
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `bundle exec rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+To install this gem onto your local machine, run `bundle exec rake install`.
+
+## Releasing a New Version
+
+There are two ways to create a release. Both require that `version.rb` has already been updated and merged to main.
+
+### Via GitHub UI
+
+1. Update `VERSION` in `lib/rspock/version.rb`, commit, open a PR, and merge to main
+2. Go to the repo on GitHub → **Releases** → **Draft a new release**
+3. Enter a new tag (e.g. `v2.0.0`), select `main` as the target branch
+4. Add a title and release notes (GitHub can auto-generate these from merged PRs)
+5. Click **Publish release**
+
+### Via CLI
+
+1. Update `VERSION` in `lib/rspock/version.rb`, commit, open a PR, and merge to main
+2. Tag and push:
+   ```
+   git checkout main && git pull
+   git tag v2.0.0
+   git push origin v2.0.0
+   ```
+
+In both cases, the [release workflow](.github/workflows/release.yml) validates that the tag matches `version.rb`, builds the gem, and publishes it to [rubygems.org](https://rubygems.org) via [Trusted Publishing](https://guides.rubygems.org/trusted-publishing/) (no API key needed). If there's a mismatch, the workflow fails before publishing.
+
+### One-time setup
+
+Configure the gem as a trusted publisher on rubygems.org so that the release workflow can publish automatically. See the [Trusted Publishing guide](https://guides.rubygems.org/trusted-publishing/pushing-a-new-gem-with-a-trusted-publisher/) for details.
 
 ## Contributing
 

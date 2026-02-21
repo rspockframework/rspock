@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = 'Data-driven testing framework.'
   spec.description   = spec.summary
-  spec.homepage      = 'https://github.com/jpduchesne/rspock'
+  spec.homepage      = 'https://github.com/rspockframework/rspock'
   spec.license       = "MIT"
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
@@ -30,7 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "simplecov", "~> 0.22"
 
   # Runtime dependencies
-  spec.add_runtime_dependency "ast_transform", "~> 1.0"
+  spec.add_runtime_dependency "ast_transform", "~> 2.0"
   spec.add_runtime_dependency "minitest", "~> 5.0"
   spec.add_runtime_dependency "mocha", ">= 1.0"
   spec.add_runtime_dependency "parser", ">= 3.0"
