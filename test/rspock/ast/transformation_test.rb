@@ -52,9 +52,9 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          test("Adding 1 and 2 results in 3") do
-            assert_equal(3, 1 + 2)
-          end
+          test("Adding 1 and 2 results in 3") {
+            (assert_equal(3, 1 + 2))
+          }
         HEREDOC
 
         assert_equal strip_end_line(expected), transform(source)
@@ -187,14 +187,14 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          Potato = Class.new do
-            begin
-              extend(RSpock::Declarative)
+          Potato = Class.new {
+            (begin
+              (extend(RSpock::Declarative))
             rescue StandardError => e
               ::RSpock::BacktraceFilter.new.filter_exception(e)
               raise
-            end
-          end
+            end)
+          }
         HEREDOC
 
         assert_equal strip_end_line(expected), transform(source)
@@ -209,16 +209,16 @@ module RSpock
 
         expected = <<~HEREDOC
           class Potato
-            begin
-              extend(RSpock::Declarative)
+            (begin
+              (extend(RSpock::Declarative))
             rescue StandardError => e
               ::RSpock::BacktraceFilter.new.filter_exception(e)
               raise
-            end
+            end)
           end
         HEREDOC
 
-        assert_equal strip_end_line(expected), transform(source)
+        assert_equal expected, transform(source)
       end
 
       test "raises if block is followed by an illegal block when code is inside a Class" do
@@ -275,10 +275,10 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          test(\"Adding 1 and 2 results in 3\") do
-            actual = (1 + 2)
+          test(\"Adding 1 and 2 results in 3\") {
+            actual = 1 + 2
             assert_equal(3, actual)
-          end
+          }
         HEREDOC
 
         assert_equal strip_end_line(expected), transform(source)
@@ -301,12 +301,12 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          [[1, 2, 3, 10], [4, 5, 9, 11]].each.with_index do |(a, b, c, _line_number_), _test_index_|
-            test(\"\#{\"Adding \"}\#{a}\#{\" and \"}\#{b}\#{\" results in \"}\#{c}\#{" "}\#{_test_index_}\#{" line "}\#{_line_number_}\") do
-              actual = (a + b)
+          [[1, 2, 3, 10], [4, 5, 9, 11]].each.with_index { |(a, b, c, _line_number_), _test_index_|
+            test("Adding \#{a} and \#{b} results in \#{c} \#{_test_index_} line \#{_line_number_}") {
+              actual = a + b
               assert_equal(c, actual)
-            end
-          end
+            }
+          }
         HEREDOC
 
         assert_equal strip_end_line(expected), transform(source)
@@ -328,15 +328,15 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          test(\"Adding 1 and 2 results in 3\") do
+          test(\"Adding 1 and 2 results in 3\") {
             begin
-              actual = (1 + 2)
+              actual = 1 + 2
               assert_equal(3, actual)
             ensure
               method1
               method2
             end
-          end
+          }
         HEREDOC
 
         assert_equal strip_end_line(expected), transform(source)
@@ -359,13 +359,13 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          test(\"interactions\") do
+          test(\"interactions\") {
             dep = mock
             foo = Foo.new(dep)
             dep.expects(:bar).times(0)
             dep.expects(:foo).times(1)
             foo.foo
-          end
+          }
         HEREDOC
 
         assert_equal strip_end_line(expected), transform(source)

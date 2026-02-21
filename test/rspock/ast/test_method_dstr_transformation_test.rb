@@ -42,8 +42,7 @@ module RSpock
         expected = s(:send, nil, :test,
                      s(:dstr,
                        s(:begin, s(:lvar, :a)),
-                       s(:str, "Test Name"),
-                       s(:str, " "),
+                       s(:str, "Test Name "),
                        s(:begin, s(:lvar, :_test_index_)),
                        s(:str, " line "),
                        s(:begin, s(:lvar, :_line_number_))))

@@ -33,7 +33,7 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          receiver.expects(:message).with(param1, *param2, p3: param3).times(1)
+          receiver.expects(:message).with(param1, *param2, { p3: param3 }).times(1)
         HEREDOC
 
         assert_equal strip_end_line(expected), transform(source)
