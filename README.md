@@ -1,5 +1,5 @@
 [![CI](https://github.com/rspockframework/rspock/actions/workflows/ci.yml/badge.svg)](https://github.com/rspockframework/rspock/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/rspockframework/rspock/branch/main/graph/badge.svg)](https://codecov.io/gh/rspockframework/rspock)
+[![codecov](https://codecov.io/gh/rspockframework/rspock/branch/master/graph/badge.svg)](https://codecov.io/gh/rspockframework/rspock)
 
 # RSpock
 
