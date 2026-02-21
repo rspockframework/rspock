@@ -23,4 +23,8 @@ jobs:
             echo "::error::Tag ($TAG_VERSION) does not match gem version ($GEM_VERSION)"
             exit 1
           fi
-      - uses: rubygems/release-gem@v1
+      - uses: rubygems/configure-rubygems-credentials@main
+      - name: Build and publish gem
+        run: |
+          gem build rspock.gemspec
+          gem push rspock-*.gem
