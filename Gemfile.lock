@@ -13,8 +13,9 @@ GEM
   specs:
     ansi (1.5.0)
     ast (2.4.3)
-    ast_transform (2.0.0)
+    ast_transform (2.1.0)
       parser (>= 3.0)
+      prism (>= 1.5)
       unparser (>= 0.6)
     builder (3.3.0)
     coderay (1.1.3)
