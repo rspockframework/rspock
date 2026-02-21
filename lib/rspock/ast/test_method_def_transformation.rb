@@ -22,7 +22,8 @@ module RSpock
       end
 
       def on_str(node)
-        node.updated(:dstr, [node, SPACE_STR_AST, TEST_INDEX_AST, LINE_NUMBER_STR_AST, LINE_NUMBER_AST])
+        merged = s(:str, "#{node.children[0]} ")
+        node.updated(:dstr, [merged, TEST_INDEX_AST, LINE_NUMBER_STR_AST, LINE_NUMBER_AST])
       end
 
       def on_dstr(node)

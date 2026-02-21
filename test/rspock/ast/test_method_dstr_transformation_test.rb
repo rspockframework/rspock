@@ -42,7 +42,26 @@ module RSpock
         expected = s(:send, nil, :test,
                      s(:dstr,
                        s(:begin, s(:lvar, :a)),
-                       s(:str, "Test Name"),
+                       s(:str, "Test Name "),
+                       s(:begin, s(:lvar, :_test_index_)),
+                       s(:str, " line "),
+                       s(:begin, s(:lvar, :_line_number_))))
+
+        assert_equal expected, actual
+      end
+
+      test "#run appends space when dstr does not end with a str node" do
+        ast = s(:send, nil, :test,
+                s(:dstr,
+                  s(:str, "Test "),
+                  s(:begin, s(:lvar, :a))))
+
+        actual = @transformation.run(ast)
+
+        expected = s(:send, nil, :test,
+                     s(:dstr,
+                       s(:str, "Test "),
+                       s(:begin, s(:lvar, :a)),
                        s(:str, " "),
                        s(:begin, s(:lvar, :_test_index_)),
                        s(:str, " line "),

@@ -82,7 +82,8 @@ module RSpock
       end
 
       def process_rspock(node)
-        children = [source_map_rescue_wrapper(s(:begin, *[EXTEND_RSPOCK_DECLARATIVE, *process_all(node)]))]
+        processed = process_all(node).compact
+        children = [source_map_rescue_wrapper(s(:begin, *[EXTEND_RSPOCK_DECLARATIVE, *processed]))]
         node.updated(nil, children)
       end
 
