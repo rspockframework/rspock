@@ -17,7 +17,7 @@ Note: RSpock is heavily inspired by Spock for the Groovy programming language.
 * BDD-style code blocks: Given, When, Then, Expect, Cleanup, Where
 * Data-driven testing with incredibly expressive table-based Where blocks
 * Expressive assertions: Use familiar comparison operators `==` and `!=` for assertions!
-* [Interaction-based testing](#mocking-with-interactions), i.e. `1 * object.receive("message")` in Then blocks
+* [Interaction-based testing](#mocking-with-interactions), i.e. `1 * object.receive("message")` in Then blocks, with optional [return value stubbing](#stubbing-return-values) via `>>`
 * (Planned) BDD-style custom reporter that outputs information from Code Blocks
 * (Planned) Capture all Then block violations
 
@@ -306,11 +306,12 @@ test "#publish sends a message to all subscribers" do
 end
 ```
 
-The above ___Then___ block contains 2 interactions, each of which has 4 parts: the _cardinality_, the _receiver_, the _message_ and its _arguments_.
+The above ___Then___ block contains 2 interactions, each of which has 4 parts: the _cardinality_, the _receiver_, the _message_ and its _arguments_. Optionally, a _return value_ can be specified using the `>>` operator.
 
 ```
-1 * receiver.message('hello')
-|   |          |       |
+1 * receiver.message('hello') >> "result"
+|   |          |       |         |
+|   |          |       |         return value (optional)
 |   |          |       argument(s)
 |   |          message
 |   receiver
@@ -356,6 +357,58 @@ The arguments of an interaction describe which arguments of the method call are 
 ```ruby
 1 * subscriber.receive('hello') # an argument that is equal to the String 'hello'
 ```
+
+#### Stubbing Return Values
+
+Interactions can be combined with return value stubbing using the `>>` operator. This is useful when the code under test relies on the return value of a collaborator method.
+
+```ruby
+1 * subscriber.receive("hello") >> "ok"
+```
+
+The `>>` operator is placed at the end of the interaction and specifies the value that the method call will return. This means you can set up expectations _and_ stub return values in a single, expressive statement.
+
+```ruby
+class Service
+  # ...
+
+  def initialize(repository)
+    @repository = repository
+  end
+
+  def foo(param)
+    # ...
+    result = @repository.bar(param)
+    # Do something with +result+ ...
+
+    result
+  end
+end
+
+test "Service#bar" do
+  Given
+  repository = Repository.new
+  service = Service.new(repository)
+
+  When
+  result = service.foo(42)
+
+  Then
+  1 * repository.foo(42) >> { name: "item", status: "active" }
+  result == "active"
+end
+```
+
+The return value can be any expression — a literal, a variable, or a complex object:
+
+```ruby
+1 * repository.find(42) >> "result"          # a String
+1 * repository.all >> [item1, item2]         # an Array
+1 * service.call >> { status: :ok }          # a Hash
+_ * cache.fetch("key") >> expensive_result   # a variable
+```
+
+**Note**: Without `>>`, an interaction sets up an expectation only (the method will return `nil` by default). Use `>>` when the code under test depends on the return value.
 
 ## Debugging
 

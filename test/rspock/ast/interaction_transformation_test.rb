@@ -255,6 +255,87 @@ module RSpock
         assert_match /tmp:1:5/, e.message
       end
 
+      test ">> stubs return value on interaction without params" do
+        source = <<~HEREDOC
+          1 * receiver.message >> "result"
+        HEREDOC
+
+        expected = <<~HEREDOC
+          receiver.expects(:message).times(1).returns("result")
+        HEREDOC
+
+        assert_equal strip_end_line(expected), transform(source)
+      end
+
+      test ">> stubs return value on interaction with params" do
+        source = <<~HEREDOC
+          1 * receiver.message(param1, param2) >> "result"
+        HEREDOC
+
+        expected = <<~HEREDOC
+          receiver.expects(:message).with(param1, param2).times(1).returns("result")
+        HEREDOC
+
+        assert_equal strip_end_line(expected), transform(source)
+      end
+
+      test ">> stubs return value with complex expression" do
+        source = <<~HEREDOC
+          1 * receiver.message >> [1, 2, 3]
+        HEREDOC
+
+        expected = <<~HEREDOC
+          receiver.expects(:message).times(1).returns([1, 2, 3])
+        HEREDOC
+
+        assert_equal strip_end_line(expected), transform(source)
+      end
+
+      test ">> stubs return value with range cardinality" do
+        source = <<~HEREDOC
+          (1..3) * receiver.message >> "result"
+        HEREDOC
+
+        expected = <<~HEREDOC
+          receiver.expects(:message).at_least(1).at_most(3).returns("result")
+        HEREDOC
+
+        assert_equal strip_end_line(expected), transform(source)
+      end
+
+      test ">> stubs return value with any matcher cardinality" do
+        source = <<~HEREDOC
+          _ * receiver.message >> "result"
+        HEREDOC
+
+        expected = <<~HEREDOC
+          receiver.expects(:message).at_least(0).returns("result")
+        HEREDOC
+
+        assert_equal strip_end_line(expected), transform(source)
+      end
+
+      test "interaction without >> has no returns call" do
+        source = <<~HEREDOC
+          1 * receiver.message
+        HEREDOC
+
+        result = transform(source)
+        refute_match(/returns/, result)
+      end
+
+      test ">> is detected as interaction node" do
+        source = '1 * receiver.message >> "result"'
+        ast = ASTTransform::Transformer.new.build_ast(source)
+        assert @transformation.interaction_node?(ast)
+      end
+
+      test "bare >> without interaction LHS is not detected as interaction" do
+        source = 'result >> "value"'
+        ast = ASTTransform::Transformer.new.build_ast(source)
+        refute @transformation.interaction_node?(ast)
+      end
+
       test "rhs without receiver raises" do
         source = <<~HEREDOC
           1 * message

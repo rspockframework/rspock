@@ -15,8 +15,10 @@ module RSpock
 
       def interaction_node?(node)
         return false if node.nil?
+        return true if node.type == :send && node.children[1] == :*
+        return true if return_value_node?(node)
 
-        node.type == :send && node.children[1] == :*
+        false
       end
 
       private
@@ -44,6 +46,8 @@ module RSpock
         else
           raise ArgumentError, "Unrecognized times constraint in interaction: #{@times_node&.loc&.expression || "?"}"
         end
+
+        result = chain_call(result, :returns, @return_value_node) if @return_value_node
 
         result
       end
@@ -88,11 +92,24 @@ module RSpock
         result
       end
 
+      def return_value_node?(node)
+        node.type == :send && node.children[1] == :>> && interaction_node?(node.children[0])
+      end
+
       def any_matcher_node?(node)
         node.type == :send && node.children[0].nil? && node.children[1] == :_
       end
 
       def parse_node(node)
+        # Unwrap `interaction >> return_value` into the underlying interaction,
+        # assigned to @return_value_node for transform_node to chain .returns().
+        if return_value_node?(node)
+          @return_value_node = node.children[2]
+          node = node.children[0]
+        else
+          @return_value_node = nil
+        end
+
         parse_lhs(node.children[0])
         parse_rhs(node.children[2])
       end
