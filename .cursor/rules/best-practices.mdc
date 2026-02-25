@@ -1,0 +1,27 @@
+---
+description: Our best practices (snapshot we own and evolve; often org-wide across repos)
+globs:
+alwaysApply: true
+---
+# Best practices (d3mlabs snapshot)
+
+We own this snapshot and evolve it as the org diverges. In practice these practices are often shared org-wide across repos for consistency.
+
+## Priorities
+
+- **Conventions over configuration**: Follow existing patterns and tooling before introducing new ones.
+- **Clarity and maintainability**: Code should be easy to read and change; prefer explicit over clever.
+- **Testability**: Design so that behavior can be tested with real inputs and minimal mocks.
+- **Explicitness**: Prefer clear, named steps and obvious control flow over brevity that hides intent.
+
+## Code and tests
+
+- No TODOs, FIXMEs, or placeholders in committed code; finish or track elsewhere.
+- In tests: use real files and temporary directories; avoid filesystem mocks.
+- Minimal shared state between tests; avoid beforeAll/afterAll and global fixtures.
+- Strict lint and existing code style; refactor until lint passes.
+- Prefer existing helpers and patterns in the codebase; search before adding new abstractions.
+
+## Further reading
+
+- [Shopify Engineering](https://shopify.engineering) — blog and engineering culture.
