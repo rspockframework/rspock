@@ -2,12 +2,12 @@
 require 'test_helper'
 require 'string_helper'
 require 'rspock/ast/interaction_transformation'
+require 'transformation_helper'
 
 module RSpock
   module AST
     class InteractionTransformationTest < Minitest::Test
       extend RSpock::Declarative
-      include ASTTransform::TransformationHelper
       include RSpock::Helpers::StringHelper
       include RSpock::Helpers::TransformationHelper
 
@@ -33,7 +33,7 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          receiver.expects(:message).with(param1, *param2, { p3: param3 }).times(1)
+          receiver.expects(:message).with(param1, *param2, p3: param3).times(1)
         HEREDOC
 
         assert_equal strip_end_line(expected), transform(source)
