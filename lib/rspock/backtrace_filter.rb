@@ -33,7 +33,7 @@ module RSpock
       return location unless source_map
 
       line_number = source_map.line(lineno) || '?'
-      location.gsub(/#{ASTTransform.output_path}\/([\S]+):(\d+)/, "\\1:#{line_number}")
+      location.sub("#{file_path}:#{lineno}", "#{source_map.source_file_path}:#{line_number}")
     end
 
     private
