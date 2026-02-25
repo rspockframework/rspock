@@ -13,8 +13,11 @@ end
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 require "rspock"
 
-# Pry
-# NOTE: Must be loaded before ASTTransform.install, otherwise we get a bunch of require_relative errors
-require 'pry'
+# Pry + Byebug
+# NOTE: Must be loaded before ASTTransform.install, otherwise we get a bunch of require_relative errors.
+# pry-byebug must be required explicitly — pry discovers plugins lazily on the first binding.pry,
+# but by then ASTTransform.install has hooked into require and interferes with plugin loading.
+require "pry"
+require "pry-byebug"
 
 ASTTransform.install
