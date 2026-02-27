@@ -1,37 +1,31 @@
 # frozen_string_literal: true
 require 'ast_transform/abstract_transformation'
-require 'rspock/ast/start_block'
-require 'rspock/ast/given_block'
-require 'rspock/ast/when_block'
-require 'rspock/ast/then_block'
-require 'rspock/ast/expect_block'
-require 'rspock/ast/cleanup_block'
-require 'rspock/ast/where_block'
-require 'rspock/ast/end_block'
+require 'rspock/ast/parser/given_block'
+require 'rspock/ast/parser/when_block'
+require 'rspock/ast/parser/then_block'
+require 'rspock/ast/parser/expect_block'
+require 'rspock/ast/parser/cleanup_block'
+require 'rspock/ast/parser/where_block'
 require 'rspock/ast/test_method_transformation'
 
 module RSpock
   module AST
     class Transformation < ASTTransform::AbstractTransformation
-      DefaultSourceMap = {
-        Given: RSpock::AST::GivenBlock,
-        When: RSpock::AST::WhenBlock,
-        Then: RSpock::AST::ThenBlock,
-        Expect: RSpock::AST::ExpectBlock,
-        Cleanup: RSpock::AST::CleanupBlock,
-        Where: RSpock::AST::WhereBlock,
+      DEFAULT_BLOCK_REGISTRY = {
+        Given: Parser::GivenBlock,
+        When: Parser::WhenBlock,
+        Then: Parser::ThenBlock,
+        Expect: Parser::ExpectBlock,
+        Cleanup: Parser::CleanupBlock,
+        Where: Parser::WhereBlock,
       }.freeze
 
       def initialize(
-        start_block_class: StartBlock,
-        end_block_class: EndBlock,
-        source_map: DefaultSourceMap,
+        block_registry: DEFAULT_BLOCK_REGISTRY,
         strict: true
       )
         super()
-        @start_block_class = start_block_class
-        @source_map = source_map
-        @end_block_class = end_block_class
+        @block_registry = block_registry
         @strict = strict
       end
 
@@ -93,9 +87,7 @@ module RSpock
         end
 
         TestMethodTransformation.new(
-          @source_map,
-          @start_block_class,
-          @end_block_class,
+          @block_registry,
           strict: @strict
         ).run(node)
       end

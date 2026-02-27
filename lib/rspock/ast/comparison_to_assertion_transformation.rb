@@ -22,7 +22,7 @@ module RSpock
       private
 
       def ignored_method_call_node?(node)
-        return false unless node.is_a?(Parser::AST::Node)
+        return false unless node.is_a?(::Parser::AST::Node)
 
         !@method_call_transformation.method_call_node?(node.children[0]) &&
           !@method_call_transformation.method_call_node?(node.children[2])

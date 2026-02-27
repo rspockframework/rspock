@@ -17,7 +17,7 @@ Note: RSpock is heavily inspired by Spock for the Groovy programming language.
 * BDD-style code blocks: Given, When, Then, Expect, Cleanup, Where
 * Data-driven testing with incredibly expressive table-based Where blocks
 * Expressive assertions: Use familiar comparison operators `==` and `!=` for assertions!
-* [Interaction-based testing](#mocking-with-interactions), i.e. `1 * object.receive("message")` in Then blocks, with optional [return value stubbing](#stubbing-return-values) via `>>`
+* [Interaction-based testing](#mocking-with-interactions), i.e. `1 * object.receive("message")` in Then blocks, with optional [return value stubbing](#stubbing-return-values) via `>>` and [block forwarding verification](#block-forwarding-verification) via `&block`
 * (Planned) BDD-style custom reporter that outputs information from Code Blocks
 * (Planned) Capture all Then block violations
 
@@ -306,19 +306,30 @@ test "#publish sends a message to all subscribers" do
 end
 ```
 
-The above ___Then___ block contains 2 interactions, each of which has 4 parts: the _cardinality_, the _receiver_, the _message_ and its _arguments_. Optionally, a _return value_ can be specified using the `>>` operator.
+The above ___Then___ block contains 2 interactions, each of which has 4 parts: the _cardinality_, the _receiver_, the _message_ and its _arguments_. Optionally, a _return value_ can be specified using the `>>` operator, and _block forwarding_ can be verified using the `&` operator.
 
 ```
-1 * receiver.message('hello') >> "result"
-|   |          |       |         |
-|   |          |       |         return value (optional)
-|   |          |       argument(s)
+1 * receiver.message('hello', &blk) >> "result"
+|   |          |       |       |       |
+|   |          |       |       |       return value (optional)
+|   |          |       |       block forwarding (optional)
+|   |          |       argument(s) (optional)
 |   |          message
 |   receiver
 cardinality
 ```
 
 Note: Interactions are supported in the ___Then___ block only.
+
+#### Execution Order
+
+Although interactions are _declared_ in the ___Then___ block, they are effectively active _before_ the ___When___ block executes. RSpock ensures the following order:
+
+1. **Before the stimulus** — mock expectations and block captures are installed on the receiver, so they are ready to intercept calls.
+2. **Stimulus** — the ___When___ block runs.
+3. **After the stimulus** — assertions such as block identity checks run alongside other ___Then___ assertions. Cardinality is verified at teardown.
+
+Simply declare _what_ should happen in a natural order — RSpock handles the _when_.
 
 #### Cardinality
 
@@ -409,6 +420,25 @@ _ * cache.fetch("key") >> expensive_result   # a variable
 ```
 
 **Note**: Without `>>`, an interaction sets up an expectation only (the method will return `nil` by default). Use `>>` when the code under test depends on the return value.
+
+#### Block Forwarding Verification
+
+When the code under test forwards a block (or proc) to a collaborator, you may want to verify that the _exact_ block was passed through. RSpock supports this with the `&` operator in interactions, performing an identity check on the block reference.
+
+```ruby
+test "#frame forwards the block to CLI::UI.frame" do
+  Given "a block to forward"
+  my_block = proc { puts "hello" }
+
+  When "we call frame with that block"
+  @ui.frame("Build", &my_block)
+
+  Then "the block was forwarded to cli_ui.frame"
+  1 * @cli_ui.frame("Build", to: @out, &my_block)
+end
+```
+
+**Note**: Inline blocks (`do...end` or `{ }`) are not supported in interactions and will raise an `InteractionError`. Use a named proc or lambda variable with `&` instead, since block forwarding verification requires a reference to compare against.
 
 ## Debugging
 
