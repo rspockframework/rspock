@@ -6,8 +6,14 @@ module RSpock
     class InteractionTransformation < ASTTransform::AbstractTransformation
       class InteractionError < RuntimeError; end
 
+      Interaction = Struct.new(:setup, :assertion)
+
+      def initialize(index = 0)
+        @index = index
+      end
+
       def run(node)
-        return node unless interaction_node?(node)
+        return Interaction.new(node, nil) unless interaction_node?(node)
 
         parse_node(node)
         transform_node
@@ -49,7 +55,34 @@ module RSpock
 
         result = chain_call(result, :returns, @return_value_node) if @return_value_node
 
-        result
+        if @block_pass_node
+          build_block_pass_result(result)
+        else
+          Interaction.new(result, nil)
+        end
+      end
+
+      def build_block_pass_result(expects_node)
+        capture_var = :"__rspock_blk_#{@index}"
+        block_var = @block_pass_node.children[0]
+
+        capture_call = s(:lvasgn, capture_var,
+          s(:send,
+            s(:const, s(:const, s(:const, nil, :RSpock), :Helpers), :BlockCapture),
+            :capture,
+            @receiver_node,
+            s(:sym, @message)
+          )
+        )
+
+        setup = s(:begin, expects_node, capture_call)
+
+        assertion = s(:send, nil, :assert_same,
+          block_var,
+          s(:send, s(:lvar, capture_var), :call)
+        )
+
+        Interaction.new(setup, assertion)
       end
 
       def chain_call(receiver_node, method_name, *arg_nodes)
@@ -141,6 +174,13 @@ module RSpock
       end
 
       def parse_rhs(node)
+        @block_pass_node = nil
+
+        if node.type == :block
+          raise InteractionError, "Inline blocks (do...end / { }) are not supported in interactions @ #{range(node)}. " \
+            "Use &var for block forwarding verification, or << for method body override (future)."
+        end
+
         if node.type != :send
           raise InteractionError, "Right-hand side of Interaction @ #{range(node)} must be a :send node."
         end
@@ -149,6 +189,13 @@ module RSpock
 
         if @receiver_node.nil?
           raise InteractionError, "Right-hand side of Interaction @ #{range(node)} must have a receiver."
+        end
+
+        # Extract &block from args if present
+        block_pass = @arg_nodes.find { |n| n.type == :block_pass }
+        if block_pass
+          @block_pass_node = block_pass
+          @arg_nodes = @arg_nodes.reject { |n| n.equal?(block_pass) }
         end
       end
 

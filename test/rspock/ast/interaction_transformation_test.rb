@@ -348,11 +348,98 @@ module RSpock
         assert_match /tmp:1:5/, e.message
       end
 
+      # --- &block verification ---
+
+      test "&block produces setup with expects + capture and assertion with assert_same" do
+        source = '1 * receiver.message("arg", &my_proc)'
+        ast = ASTTransform::Transformer.new.build_ast(source)
+        result = @transformation.run(ast)
+
+        setup_source = Unparser.unparse(result.setup)
+        assert_match(/receiver\.expects\(:message\)\.with\("arg"\)\.times\(1\)/, setup_source)
+        assert_match(/RSpock::Helpers::BlockCapture\.capture\(receiver, :message\)/, setup_source)
+
+        assertion_source = Unparser.unparse(result.assertion)
+        assert_match(/assert_same\(my_proc/, assertion_source)
+        assert_match(/__rspock_blk_0\.call/, assertion_source)
+      end
+
+      test "&block without other args produces setup and assertion" do
+        source = '1 * receiver.message(&my_proc)'
+        ast = ASTTransform::Transformer.new.build_ast(source)
+        result = @transformation.run(ast)
+
+        setup_source = Unparser.unparse(result.setup)
+        refute_match(/\.with\(/, setup_source)
+        assert_match(/receiver\.expects\(:message\)\.times\(1\)/, setup_source)
+        assert_match(/BlockCapture\.capture/, setup_source)
+
+        refute_nil result.assertion
+      end
+
+      test "&block with >> produces setup with returns and assertion" do
+        source = '1 * receiver.message(&my_proc) >> "result"'
+        ast = ASTTransform::Transformer.new.build_ast(source)
+        result = @transformation.run(ast)
+
+        setup_source = Unparser.unparse(result.setup)
+        assert_match(/\.returns\("result"\)/, setup_source)
+        assert_match(/BlockCapture\.capture/, setup_source)
+
+        refute_nil result.assertion
+      end
+
+      test "interaction without &block has nil assertion" do
+        source = '1 * receiver.message("arg")'
+        ast = ASTTransform::Transformer.new.build_ast(source)
+        result = @transformation.run(ast)
+
+        assert_nil result.assertion
+        assert_equal Unparser.unparse(result.setup), 'receiver.expects(:message).with("arg").times(1)'
+      end
+
+      test "inline do...end block raises InteractionError" do
+        source = '1 * receiver.message("arg") do; end'
+        ast = ASTTransform::Transformer.new.build_ast(source)
+
+        e = assert_raises RSpock::AST::InteractionTransformation::InteractionError do
+          @transformation.run(ast)
+        end
+
+        assert_match(/Inline blocks/, e.message)
+        assert_match(/&var/, e.message)
+      end
+
+      test "inline { } block raises InteractionError" do
+        source = '1 * receiver.message("arg") { }'
+        ast = ASTTransform::Transformer.new.build_ast(source)
+
+        e = assert_raises RSpock::AST::InteractionTransformation::InteractionError do
+          @transformation.run(ast)
+        end
+
+        assert_match(/Inline blocks/, e.message)
+      end
+
+      test "unique index produces unique capture variable names" do
+        source = '1 * receiver.message(&my_proc)'
+        ast = ASTTransform::Transformer.new.build_ast(source)
+
+        result0 = RSpock::AST::InteractionTransformation.new(0).run(ast)
+        result1 = RSpock::AST::InteractionTransformation.new(1).run(ast)
+
+        assert_match(/__rspock_blk_0/, Unparser.unparse(result0.setup))
+        assert_match(/__rspock_blk_1/, Unparser.unparse(result1.setup))
+        assert_match(/__rspock_blk_0/, Unparser.unparse(result0.assertion))
+        assert_match(/__rspock_blk_1/, Unparser.unparse(result1.assertion))
+      end
+
       private
 
-      def transform(source, *transformations)
-        transformations << @transformation if transformations.empty?
-        super(source, *transformations)
+      def transform(source)
+        ast = ASTTransform::Transformer.new.build_ast(source)
+        result = @transformation.run(ast)
+        Unparser.unparse(result.setup)
       end
     end
   end
