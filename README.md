@@ -17,7 +17,7 @@ Note: RSpock is heavily inspired by Spock for the Groovy programming language.
 * BDD-style code blocks: Given, When, Then, Expect, Cleanup, Where
 * Data-driven testing with incredibly expressive table-based Where blocks
 * Expressive assertions: Use familiar comparison operators `==` and `!=` for assertions!
-* [Interaction-based testing](#mocking-with-interactions), i.e. `1 * object.receive("message")` in Then blocks, with optional [return value stubbing](#stubbing-return-values) via `>>` and [block forwarding verification](#block-forwarding-verification) via `&block`
+* [Interaction-based testing](#mocking-with-interactions), i.e. `1 * object.receive("message")` in Then blocks, with optional [return value stubbing](#stubbing-return-values) via `>>`, [exception stubbing](#stubbing-exceptions) via `>> raises(...)`, and [block forwarding verification](#block-forwarding-verification) via `&block`
 * (Planned) BDD-style custom reporter that outputs information from Code Blocks
 * (Planned) Capture all Then block violations
 
@@ -306,12 +306,12 @@ test "#publish sends a message to all subscribers" do
 end
 ```
 
-The above ___Then___ block contains 2 interactions, each of which has 4 parts: the _cardinality_, the _receiver_, the _message_ and its _arguments_. Optionally, a _return value_ can be specified using the `>>` operator, and _block forwarding_ can be verified using the `&` operator.
+The above ___Then___ block contains 2 interactions, each of which has 4 parts: the _cardinality_, the _receiver_, the _message_ and its _arguments_. Optionally, an _outcome_ can be specified using the `>>` operator (either a return value or `raises(...)` for exceptions), and _block forwarding_ can be verified using the `&` operator.
 
 ```
 1 * receiver.message('hello', &blk) >> "result"
 |   |          |       |       |       |
-|   |          |       |       |       return value (optional)
+|   |          |       |       |       outcome (optional): value or raises(...)
 |   |          |       |       block forwarding (optional)
 |   |          |       argument(s) (optional)
 |   |          message
@@ -420,6 +420,39 @@ _ * cache.fetch("key") >> expensive_result   # a variable
 ```
 
 **Note**: Without `>>`, an interaction sets up an expectation only (the method will return `nil` by default). Use `>>` when the code under test depends on the return value.
+
+#### Stubbing Exceptions
+
+When the code under test needs a collaborator to raise an exception, use `>> raises(...)` instead of a return value. This sets up the mock to raise the given exception when called.
+
+```ruby
+test "#fetch raises when the record is not found" do
+  Given
+  repository = mock
+  service = Service.new(repository)
+
+  When
+  service.fetch(42)
+
+  Then
+  1 * repository.find(42) >> raises(RecordNotFound)
+end
+```
+
+You can also pass a message or an exception instance:
+
+```ruby
+1 * repository.find(42) >> raises(RecordNotFound, "not found")  # class + message
+1 * repository.find(42) >> raises(RecordNotFound.new("not found"))  # instance
+```
+
+This works with all interaction features — cardinality, arguments, and ranges:
+
+```ruby
+(1..3) * service.call(anything) >> raises(TimeoutError)
+```
+
+**Note**: Without `raises(...)`, the `>>` operator stubs a return value. With `raises(...)`, it stubs an exception instead.
 
 #### Block Forwarding Verification
 

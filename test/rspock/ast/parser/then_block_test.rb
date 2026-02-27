@@ -108,7 +108,7 @@ module RSpock
           assert_equal :block_pass, block_pass.type
         end
 
-        test "#to_rspock_node parses interaction with >> return value" do
+        test "#to_rspock_node parses interaction with >> outcome" do
           node = @transformer.build_ast('1 * receiver.message >> "result"')
           @block << node
 
@@ -117,9 +117,9 @@ module RSpock
 
           assert_equal :rspock_interaction, interaction.type
 
-          return_value = interaction.children[4]
-          refute_nil return_value
-          assert_equal :str, return_value.type
+          outcome = interaction.outcome
+          refute_nil outcome
+          assert_equal :rspock_returns, outcome.type
         end
 
         test "#to_rspock_node handles mixed interaction and comparison nodes" do

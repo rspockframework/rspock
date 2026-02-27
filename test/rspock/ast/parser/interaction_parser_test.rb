@@ -115,16 +115,31 @@ module RSpock
           assert_equal 2, args.children.length
         end
 
-        # --- parse: return value ---
+        # --- parse: outcome ---
 
-        test "#parse sets return_value to nil without >>" do
+        test "#parse sets outcome to nil without >>" do
           ir = parse('1 * receiver.message')
-          assert_nil ir.children[4]
+          assert_nil ir.outcome
         end
 
-        test "#parse extracts return value from >>" do
+        test "#parse wraps >> value in :rspock_returns" do
           ir = parse('1 * receiver.message >> "result"')
-          assert_equal s(:str, "result"), ir.children[4]
+          assert_equal :rspock_returns, ir.outcome.type
+          assert_equal s(:str, "result"), ir.outcome.children[0]
+        end
+
+        test "#parse wraps >> raises(ExClass) in :rspock_raises" do
+          ir = parse('1 * receiver.message >> raises(SomeError)')
+          assert_equal :rspock_raises, ir.outcome.type
+          assert_equal :const, ir.outcome.children[0].type
+        end
+
+        test "#parse wraps >> raises(ExClass, msg) in :rspock_raises with two children" do
+          ir = parse('1 * receiver.message >> raises(SomeError, "oops")')
+          assert_equal :rspock_raises, ir.outcome.type
+          assert_equal 2, ir.outcome.children.length
+          assert_equal :const, ir.outcome.children[0].type
+          assert_equal s(:str, "oops"), ir.outcome.children[1]
         end
 
         # --- parse: block pass ---

@@ -154,6 +154,41 @@ module RSpock
         refute_match(/returns/, result)
       end
 
+      test ">> raises(ExClass) stubs exception" do
+        assert_transforms(
+          '1 * receiver.message >> raises(SomeError)',
+          'receiver.expects(:message).times(1).raises(SomeError)'
+        )
+      end
+
+      test ">> raises(ExClass, message) stubs exception with message" do
+        assert_transforms(
+          '1 * receiver.message >> raises(SomeError, "oops")',
+          'receiver.expects(:message).times(1).raises(SomeError, "oops")'
+        )
+      end
+
+      test ">> raises(ExClass.new(msg)) stubs exception instance" do
+        assert_transforms(
+          '1 * receiver.message >> raises(SomeError.new("oops"))',
+          'receiver.expects(:message).times(1).raises(SomeError.new("oops"))'
+        )
+      end
+
+      test ">> raises with params and cardinality" do
+        assert_transforms(
+          '1 * receiver.message(param1, param2) >> raises(SomeError)',
+          'receiver.expects(:message).with(param1, param2).times(1).raises(SomeError)'
+        )
+      end
+
+      test ">> raises with range cardinality" do
+        assert_transforms(
+          '(1..3) * receiver.message >> raises(SomeError)',
+          'receiver.expects(:message).at_least(1).at_most(3).raises(SomeError)'
+        )
+      end
+
       test "&block produces setup with expects and capture" do
         ir_node = parse_to_ir('1 * receiver.message("arg", &my_proc)')
         result = @transformation.run(ir_node)
