@@ -1,165 +1,165 @@
 # frozen_string_literal: true
 require 'ast_transform/abstract_transformation'
+require 'rspock/ast/node'
+require 'rspock/ast/comparison_to_assertion_transformation'
 require 'rspock/ast/header_nodes_transformation'
+require 'rspock/ast/interaction_to_mocha_mock_transformation'
+require 'rspock/ast/interaction_to_block_identity_assertion_transformation'
 require 'rspock/ast/method_call_to_lvar_transformation'
 require 'rspock/ast/test_method_def_transformation'
+require 'rspock/ast/parser/test_method_parser'
 
 module RSpock
   module AST
     class TestMethodTransformation < ASTTransform::AbstractTransformation
-      def initialize(source_map, start_block_class, end_block_class, strict: true)
-        @source_map = source_map
-        @start_block_class = start_block_class
-        @end_block_class = end_block_class
-        @strict = strict
-        @blocks = []
+      def initialize(block_registry, strict: true)
+        @parser = Parser::TestMethodParser.new(block_registry, strict: strict)
+        @comparison_transformation = ComparisonToAssertionTransformation.new(:_test_index_, :_line_number_)
       end
 
       def run(node)
-        parse(node)
-        build_ast(node)
+        rspock_ast = @parser.parse(node)
+        return node if rspock_ast.nil?
+        transform(rspock_ast)
       end
 
       private
 
-      def parse(node)
-        start_block = @start_block_class.new(node)
-        start_block.node_container = !@strict
+      def transform(rspock_ast)
+        hoisted_setups = []
 
-        add_block(start_block)
-        test_method_nodes(node).each { |n| parse_node(n) }
-        add_block(@end_block_class.new)
-        nil
+
+        method_call = rspock_ast.def_node.method_call
+        method_args = rspock_ast.def_node.args
+        where = rspock_ast.where_node
+
+        transformed_blocks = rspock_ast.blocks.map do |block_node|
+          case block_node.type
+          when :rspock_then
+            transform_then_block(block_node, hoisted_setups)
+          when :rspock_expect
+            transform_expect_block(block_node)
+          else
+            block_node
+          end
+        end
+
+        transformed_ast = rspock_ast.updated(nil, [rspock_ast.def_node, *transformed_blocks])
+        build_ruby_ast(method_call, method_args, transformed_ast, where, hoisted_setups)
       end
 
-      def build_ast(node)
-        if where_block
+      def transform_then_block(then_node, hoisted_setups)
+        interaction_setups = []
+        then_children = []
+
+        then_node.children.each_with_index do |child, idx|
+          if child.type == :rspock_interaction
+            setup = InteractionToMochaMockTransformation.new(idx).run(child)
+            assertion = InteractionToBlockIdentityAssertionTransformation.new(idx).run(child)
+
+            interaction_setups << setup
+            then_children << assertion unless assertion.equal?(child)
+          else
+            then_children << @comparison_transformation.run(child)
+          end
+        end
+
+        unless interaction_setups.empty?
+          interaction_setups.each do |node|
+            if node.type == :begin
+              hoisted_setups.concat(node.children)
+            else
+              hoisted_setups << node
+            end
+          end
+        end
+
+        then_node.updated(nil, then_children)
+      end
+
+      def transform_expect_block(expect_node)
+        new_children = expect_node.children.map { |child| @comparison_transformation.run(child) }
+        expect_node.updated(nil, new_children)
+      end
+
+      # --- Build final Ruby AST ---
+
+      def build_ruby_ast(method_call, method_args, transformed_ast, where, hoisted_setups)
+        if where
+          test_def = s(:block,
+            TestMethodDefTransformation.new.run(method_call),
+            method_args,
+            build_test_body(transformed_ast, hoisted_setups)
+          )
+          test_def = HeaderNodesTransformation.new(where.header).run(test_def)
+
           s(:block,
-            build_where_block_iterator(where_block.data),
-            build_where_block_args(where_block.header),
-            build_test_method_def(node)
+            build_where_iterator(where.data_rows),
+            build_where_args(where.header),
+            test_def
           )
         else
-          build_test_method_def(node)
+          s(:block,
+            method_call,
+            method_args,
+            build_test_body(transformed_ast, hoisted_setups)
+          )
         end
       end
 
-      def build_where_block_iterator(rows)
+      def build_test_body(transformed_ast, hoisted_setups)
+        body_children = []
+
+        transformed_ast.children.each do |block_node|
+          case block_node.type
+          when :rspock_given
+            body_children.concat(block_node.children)
+          when :rspock_when
+            body_children.concat(hoisted_setups)
+            body_children.concat(block_node.children)
+          when :rspock_then, :rspock_expect
+            body_children.concat(block_node.children)
+          when :rspock_cleanup, :rspock_where, :rspock_def
+            # handled separately
+          end
+        end
+
+        ast = s(:begin, *body_children)
+
+        cleanup = transformed_ast.children.find { |n| n.type == :rspock_cleanup }
+        if cleanup && !cleanup.children.empty?
+          ensure_node = s(:begin, *cleanup.children)
+          ast = s(:kwbegin, s(:ensure, ast, ensure_node))
+        end
+
+        MethodCallToLVarTransformation.new(:_test_index_, :_line_number_).run(ast)
+      end
+
+      # --- Where block helpers ---
+
+      def build_where_iterator(data_rows)
         s(:send,
           s(:send,
-            s(:array, *build_where_block_data_rows(rows)),
+            s(:array, *data_rows.map { |row| build_where_data_row(row) }),
             :each,
           ),
           :with_index
         )
       end
 
-      def build_where_block_data_rows(rows)
-        rows.map(&method(:build_where_block_data_row))
-      end
-
-      def build_where_block_data_row(row)
+      def build_where_data_row(row)
         children = row.dup
         children << s(:int, row.first&.loc&.expression&.line)
-
         s(:array, *children)
       end
 
-      def build_where_block_args(header)
+      def build_where_args(header)
         injected_args = header.map { |column| s(:arg, column) }
         injected_args << s(:arg, :_line_number_)
-
         s(:args,
           s(:mlhs, *injected_args),
           s(:arg, :_test_index_),
         )
-      end
-
-      def build_test_method_def(node)
-        if where_block
-          ast = s(:block,
-            TestMethodDefTransformation.new.run(node.children[0]),
-            node.children[1],
-            build_test_body
-          )
-          HeaderNodesTransformation.new(where_block.header).run(ast)
-        else
-          s(:block,
-            node.children[0],
-            node.children[1],
-            build_test_body
-          )
-        end
-      end
-
-      def first_scope
-        @blocks.first
-      end
-
-      def current_scope
-        @blocks.last
-      end
-
-      def add_block(block)
-        if current_scope && !current_scope.valid_successor?(block)
-          raise RSpock::AST::BlockError, current_scope.succession_error_msg
-        end
-
-        @blocks << block
-      end
-
-      def test_method_nodes(node)
-        return [] if node.children[2].nil?
-
-        node.children[2]&.type == :begin ? node.children[2].children : [node.children[2]]
-      end
-
-      def parse_node(node)
-        if @source_map.key?(node.children[1])
-          add_block(build_block(node))
-        else
-          current_scope << node
-        end
-      end
-
-      def build_block(node)
-        @source_map[node.children[1]].new(node)
-      end
-
-      def when_block
-        @when_block ||= @blocks.detect { |block| block.type == :When }
-      end
-
-      def then_block
-        @then_block ||= @blocks.detect { |block| block.type == :Then }
-      end
-
-      def where_block
-        @where_block ||= @blocks.detect { |block| block.type == :Where }
-      end
-
-      def cleanup_block
-        @cleanup_block ||= @blocks.detect { |block| block.type == :Cleanup }
-      end
-
-      def build_test_body
-        then_block&.interactions&.reverse&.each { |interaction| when_block.unshift(interaction) }
-
-        test_body_children = @blocks.select { |block| [:Start, :Given, :When, :Then, :Expect].include?(block.type) }
-          .map { |block| block.children }
-          .flatten
-
-        ast = s(:begin, *test_body_children)
-
-        if cleanup_block && !cleanup_block.children.empty?
-          ensure_node = s(:begin, *cleanup_block.children)
-
-          ast = s(:kwbegin,
-                  s(:ensure, ast, ensure_node)
-          )
-        end
-
-        MethodCallToLVarTransformation.new(:_test_index_, :_line_number_).run(ast)
       end
     end
   end

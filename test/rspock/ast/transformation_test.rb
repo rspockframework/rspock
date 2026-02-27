@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 require 'test_helper'
-require 'string_helper'
+require 'transformation_helper'
 
 module RSpock
   module AST
@@ -21,11 +21,11 @@ module RSpock
           end
         HEREDOC
 
-        error = assert_raises RSpock::AST::BlockError do
+        error = assert_raises RSpock::AST::Parser::BlockError do
           transform(source)
         end
 
-        assert_equal "Test method @ tmp:1:1 must start with one of these Blocks: #{[:Given, :When, :Expect]}", error.message
+        assert_equal "Test method @ tmp:1:1 must start with one of: Given, When, Expect", error.message
       end
 
       test "first node cannot be regular code" do
@@ -35,11 +35,11 @@ module RSpock
           end
         HEREDOC
 
-        error = assert_raises RSpock::AST::BlockError do
+        error = assert_raises RSpock::AST::Parser::BlockError do
           transform(source)
         end
 
-        assert_equal "Test method @ tmp:1:1 must start with one of these Blocks: #{[:Given, :When, :Expect]}", error.message
+        assert_equal "Test method must start with one of: Given, When, Expect", error.message
       end
 
       test "first node can be regular code if strict mode is disabled" do
@@ -53,7 +53,7 @@ module RSpock
 
         expected = <<~HEREDOC
           test("Adding 1 and 2 results in 3") {
-            (assert_equal(3, 1 + 2))
+            assert_equal(3, 1 + 2)
           }
         HEREDOC
 
@@ -67,11 +67,11 @@ module RSpock
           end
         HEREDOC
 
-        error = assert_raises RSpock::AST::BlockError do
+        error = assert_raises RSpock::AST::Parser::BlockError do
           transform(source)
         end
 
-        assert_equal "Test method @ tmp:1:1 must start with one of these Blocks: #{[:Given, :When, :Expect]}", error.message
+        assert_equal "Test method @ tmp:1:1 must start with one of: Given, When, Expect", error.message
       end
 
       test "expect block can be followed by nothing" do
@@ -103,19 +103,13 @@ module RSpock
           end
         HEREDOC
 
-        start_block_class = Class.new(RSpock::AST::Block) do
-          def initialize(node)
-            super(:Start1, node)
-          end
-
-          def successors
-            [:Block1, :Block2]
-          end
-        end
-
-        block1_class = Class.new(RSpock::AST::Block) do
+        block1_class = Class.new(RSpock::AST::Parser::Block) do
           def initialize(node)
             super(:Block1, node)
+          end
+
+          def can_start?
+            true
           end
 
           def successors
@@ -123,17 +117,21 @@ module RSpock
           end
         end
 
-        block2_class = Class.new(RSpock::AST::Block) do
+        block2_class = Class.new(RSpock::AST::Parser::Block) do
           def initialize(node)
             super(:Block2, node)
           end
+
+          def can_end?
+            true
+          end
         end
 
-        source_map = { Block1: block1_class, Block2: block2_class }
+        block_registry = { Block1: block1_class, Block2: block2_class }
 
         transform(
           source,
-          RSpock::AST::Transformation.new(start_block_class: start_block_class, source_map: source_map),
+          RSpock::AST::Transformation.new(block_registry: block_registry),
         )
       end
 
@@ -145,38 +143,36 @@ module RSpock
           end
         HEREDOC
 
-        start_block_class = Class.new(RSpock::AST::Block) do
-          def initialize(node)
-            super(:Start1, node)
-          end
-
-          def successors
-            [:Block1, :Block2]
-          end
-        end
-
-        block1_class = Class.new(RSpock::AST::Block) do
+        block1_class = Class.new(RSpock::AST::Parser::Block) do
           def initialize(node)
             super(:Block1, node)
           end
-        end
 
-        block2_class = Class.new(RSpock::AST::Block) do
-          def initialize(node)
-            super(:Block2, node)
+          def can_start?
+            true
           end
         end
 
-        source_map = { Block1: block1_class, Block2: block2_class }
+        block2_class = Class.new(RSpock::AST::Parser::Block) do
+          def initialize(node)
+            super(:Block2, node)
+          end
 
-        error = assert_raises RSpock::AST::BlockError do
+          def can_end?
+            true
+          end
+        end
+
+        block_registry = { Block1: block1_class, Block2: block2_class }
+
+        error = assert_raises RSpock::AST::Parser::BlockError do
           transform(
             source,
-            RSpock::AST::Transformation.new(start_block_class: start_block_class, source_map: source_map),
+            RSpock::AST::Transformation.new(block_registry: block_registry),
           )
         end
 
-        assert_equal "Block Block1 @ tmp:2:3 must be followed by one of these Blocks: #{[:End]}", error.message
+        assert_equal "Block Block1 @ tmp:2:3 must be followed by one of these Blocks: #{[]}", error.message
       end
 
       test "#run adds extend RSpock::Declarative when using Class.new" do
@@ -231,34 +227,32 @@ module RSpock
           end
         HEREDOC
 
-        start_block_class = Class.new(RSpock::AST::Block) do
-          def initialize(node)
-            super(:Start1, node)
-          end
-
-          def successors
-            [:Block1, :Block2]
-          end
-        end
-
-        block1_class = Class.new(RSpock::AST::Block) do
+        block1_class = Class.new(RSpock::AST::Parser::Block) do
           def initialize(node)
             super(:Block1, node)
           end
-        end
 
-        block2_class = Class.new(RSpock::AST::Block) do
-          def initialize(node)
-            super(:Block2, node)
+          def can_start?
+            true
           end
         end
 
-        source_map = { Block1: block1_class, Block2: block2_class }
+        block2_class = Class.new(RSpock::AST::Parser::Block) do
+          def initialize(node)
+            super(:Block2, node)
+          end
 
-        assert_raises RSpock::AST::BlockError do
+          def can_end?
+            true
+          end
+        end
+
+        block_registry = { Block1: block1_class, Block2: block2_class }
+
+        assert_raises RSpock::AST::Parser::BlockError do
           transform(
             source,
-            RSpock::AST::Transformation.new(start_block_class: start_block_class, source_map: source_map),
+            RSpock::AST::Transformation.new(block_registry: block_registry),
           )
         end
       end
@@ -365,6 +359,139 @@ module RSpock
             dep.expects(:bar).times(0)
             dep.expects(:foo).times(1)
             foo.foo
+          }
+        HEREDOC
+
+        assert_equal strip_end_line(expected), transform(source)
+      end
+
+      test "test with interaction and &block forwarding" do
+        source = <<~HEREDOC
+          test "block forwarding" do
+            Given
+            my_proc = Proc.new { }
+            dep = mock
+
+            When
+            dep.call_method("arg", &my_proc)
+
+            Then
+            1 * dep.call_method("arg", &my_proc)
+          end
+        HEREDOC
+
+        expected = <<~HEREDOC
+          test("block forwarding") {
+            my_proc = Proc.new {
+            }
+            dep = mock
+            dep.expects(:call_method).with("arg").times(1)
+            __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(dep, :call_method)
+            dep.call_method("arg", &my_proc)
+            assert_same(my_proc, __rspock_blk_0.call)
+          }
+        HEREDOC
+
+        assert_equal strip_end_line(expected), transform(source)
+      end
+
+      test "test with multiple &block interactions" do
+        source = <<~HEREDOC
+          test "multiple blocks" do
+            Given
+            cb1 = Proc.new { }
+            cb2 = Proc.new { }
+            dep = mock
+
+            When
+            dep.method1(&cb1)
+            dep.method2(&cb2)
+
+            Then
+            1 * dep.method1(&cb1)
+            1 * dep.method2(&cb2)
+          end
+        HEREDOC
+
+        expected = <<~HEREDOC
+          test("multiple blocks") {
+            cb1 = Proc.new {
+            }
+            cb2 = Proc.new {
+            }
+            dep = mock
+            dep.expects(:method1).times(1)
+            __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(dep, :method1)
+            dep.expects(:method2).times(1)
+            __rspock_blk_1 = RSpock::Helpers::BlockCapture.capture(dep, :method2)
+            dep.method1(&cb1)
+            dep.method2(&cb2)
+            assert_same(cb1, __rspock_blk_0.call)
+            assert_same(cb2, __rspock_blk_1.call)
+          }
+        HEREDOC
+
+        assert_equal strip_end_line(expected), transform(source)
+      end
+
+      test "test with &block and >> return value" do
+        source = <<~HEREDOC
+          test "block with return" do
+            Given
+            my_proc = Proc.new { }
+            dep = mock
+
+            When
+            dep.call_method(&my_proc)
+
+            Then
+            1 * dep.call_method(&my_proc) >> "result"
+          end
+        HEREDOC
+
+        expected = <<~HEREDOC
+          test("block with return") {
+            my_proc = Proc.new {
+            }
+            dep = mock
+            dep.expects(:call_method).times(1).returns("result")
+            __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(dep, :call_method)
+            dep.call_method(&my_proc)
+            assert_same(my_proc, __rspock_blk_0.call)
+          }
+        HEREDOC
+
+        assert_equal strip_end_line(expected), transform(source)
+      end
+
+      test "test with mixed interactions (with and without &block)" do
+        source = <<~HEREDOC
+          test "mixed interactions" do
+            Given
+            my_proc = Proc.new { }
+            dep = mock
+
+            When
+            dep.method1("arg")
+            dep.method2(&my_proc)
+
+            Then
+            1 * dep.method1("arg")
+            1 * dep.method2(&my_proc)
+          end
+        HEREDOC
+
+        expected = <<~HEREDOC
+          test("mixed interactions") {
+            my_proc = Proc.new {
+            }
+            dep = mock
+            dep.expects(:method1).with("arg").times(1)
+            dep.expects(:method2).times(1)
+            __rspock_blk_1 = RSpock::Helpers::BlockCapture.capture(dep, :method2)
+            dep.method1("arg")
+            dep.method2(&my_proc)
+            assert_same(my_proc, __rspock_blk_1.call)
           }
         HEREDOC
 
