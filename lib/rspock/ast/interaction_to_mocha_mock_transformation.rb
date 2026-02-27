@@ -6,11 +6,20 @@ module RSpock
   module AST
     # Transforms an :rspock_interaction node into Mocha mock setup code.
     #
-    # Input:  s(:rspock_interaction, cardinality, receiver, sym, args, return_value, block_pass)
+    # Input:  s(:rspock_interaction, cardinality, receiver, sym, args, outcome, block_pass)
     # Output: receiver.expects(:message).with(*args).times(n).returns(value)
+    #
+    # The outcome node type maps directly to the Mocha chain method:
+    #   :rspock_returns -> .returns(value)
+    #   :rspock_raises  -> .raises(exception_class, ...)
     #
     # When block_pass is present, wraps the expects chain with a BlockCapture.capture call.
     class InteractionToMochaMockTransformation < ASTTransform::AbstractTransformation
+      OUTCOME_METHODS = {
+        rspock_returns: :returns,
+        rspock_raises: :raises,
+      }.freeze
+
       def initialize(index = 0)
         @index = index
       end
@@ -21,7 +30,7 @@ module RSpock
         result = chain_call(interaction.receiver, :expects, s(:sym, interaction.message))
         result = chain_call(result, :with, *interaction.args.children) if interaction.args
         result = build_cardinality(result, interaction.cardinality)
-        result = chain_call(result, :returns, interaction.return_value) if interaction.return_value
+        result = chain_call(result, OUTCOME_METHODS.fetch(interaction.outcome.type), *interaction.outcome.children) if interaction.outcome
 
         if interaction.block_pass
           build_block_capture_setup(result, interaction.receiver, interaction.message)

@@ -70,6 +70,17 @@ module RSpock
       end
     end
 
+    class OutcomeNode < Node
+    end
+
+    class ReturnsNode < OutcomeNode
+      register :rspock_returns
+    end
+
+    class RaisesNode < OutcomeNode
+      register :rspock_raises
+    end
+
     class InteractionNode < Node
       register :rspock_interaction
 
@@ -78,7 +89,7 @@ module RSpock
       def message_sym  = children[2]
       def message      = message_sym.children[0]
       def args         = children[3]
-      def return_value = children[4]
+      def outcome      = children[4]
       def block_pass   = children[5]
     end
 

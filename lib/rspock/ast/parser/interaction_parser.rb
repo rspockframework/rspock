@@ -7,14 +7,14 @@ module RSpock
       # Parses raw Ruby AST interaction nodes into structured :rspock_interaction nodes.
       #
       # Input:  1 * receiver.message("arg", &blk) >> "result"
-      # Output: s(:rspock_interaction, cardinality, receiver, sym, args, return_value, block_pass)
+      # Output: s(:rspock_interaction, cardinality, receiver, sym, args, outcome, block_pass)
       #
       # :rspock_interaction children:
       #   [0] cardinality  - e.g. s(:int, 1), s(:begin, s(:irange, ...)), s(:send, nil, :_)
       #   [1] receiver     - e.g. s(:send, nil, :subscriber)
       #   [2] message      - e.g. s(:sym, :receive)
       #   [3] args         - nil if no args, s(:array, *arg_nodes) otherwise
-      #   [4] return_value - nil if no >>, otherwise the value node
+      #   [4] outcome      - nil if no >>, otherwise s(:rspock_returns, value) or s(:rspock_raises, *args)
       #   [5] block_pass   - nil if no &, otherwise s(:block_pass, ...)
       class InteractionParser
         include RSpock::AST::NodeBuilder
@@ -35,7 +35,7 @@ module RSpock
           return node unless interaction_node?(node)
 
           if return_value_node?(node)
-            return_value = node.children[2]
+            outcome = parse_outcome(node.children[2])
             node = node.children[0]
           end
 
@@ -50,7 +50,7 @@ module RSpock
             receiver,
             s(:sym, message),
             args,
-            return_value,
+            outcome,
             block_pass
           )
         end
@@ -59,6 +59,14 @@ module RSpock
 
         def return_value_node?(node)
           node.type == :send && node.children[1] == :>> && interaction_node?(node.children[0])
+        end
+
+        def parse_outcome(node)
+          if node.type == :send && node.children[0].nil? && node.children[1] == :raises
+            s(:rspock_raises, *node.children[2..])
+          else
+            s(:rspock_returns, node)
+          end
         end
 
         def validate_cardinality(node)
