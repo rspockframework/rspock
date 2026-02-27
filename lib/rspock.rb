@@ -8,5 +8,6 @@ require 'ast_transform'
 ASTTransform.acronym('RSpock')
 
 require 'rspock/ast/transformation'
+require 'rspock/helpers/block_capture'
 
 require 'rspock/railtie' if defined?(Rails)
