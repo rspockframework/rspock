@@ -28,12 +28,11 @@ module RSpock
       def transform(rspock_ast)
         hoisted_setups = []
 
-
         method_call = rspock_ast.def_node.method_call
         method_args = rspock_ast.def_node.args
         where = rspock_ast.where_node
 
-        transformed_blocks = rspock_ast.blocks.map do |block_node|
+        transformed_blocks = rspock_ast.body_node.children.map do |block_node|
           case block_node.type
           when :rspock_then
             transform_then_block(block_node, hoisted_setups)
@@ -44,8 +43,8 @@ module RSpock
           end
         end
 
-        transformed_ast = rspock_ast.updated(nil, [rspock_ast.def_node, *transformed_blocks])
-        build_ruby_ast(method_call, method_args, transformed_ast, where, hoisted_setups)
+        transformed_body = rspock_ast.body_node.updated(nil, transformed_blocks)
+        build_ruby_ast(method_call, method_args, transformed_body, where, hoisted_setups)
       end
 
       def transform_then_block(then_node, hoisted_setups)
@@ -84,12 +83,12 @@ module RSpock
 
       # --- Build final Ruby AST ---
 
-      def build_ruby_ast(method_call, method_args, transformed_ast, where, hoisted_setups)
+      def build_ruby_ast(method_call, method_args, body_node, where, hoisted_setups)
         if where
           test_def = s(:block,
             TestMethodDefTransformation.new.run(method_call),
             method_args,
-            build_test_body(transformed_ast, hoisted_setups)
+            build_test_body(body_node, hoisted_setups)
           )
           test_def = HeaderNodesTransformation.new(where.header).run(test_def)
 
@@ -102,15 +101,15 @@ module RSpock
           s(:block,
             method_call,
             method_args,
-            build_test_body(transformed_ast, hoisted_setups)
+            build_test_body(body_node, hoisted_setups)
           )
         end
       end
 
-      def build_test_body(transformed_ast, hoisted_setups)
+      def build_test_body(body_node, hoisted_setups)
         body_children = []
 
-        transformed_ast.children.each do |block_node|
+        body_node.children.each do |block_node|
           case block_node.type
           when :rspock_given
             body_children.concat(block_node.children)
@@ -119,14 +118,14 @@ module RSpock
             body_children.concat(block_node.children)
           when :rspock_then, :rspock_expect
             body_children.concat(block_node.children)
-          when :rspock_cleanup, :rspock_where, :rspock_def
-            # handled separately
+          when :rspock_cleanup
+            # handled below as ensure
           end
         end
 
         ast = s(:begin, *body_children)
 
-        cleanup = transformed_ast.children.find { |n| n.type == :rspock_cleanup }
+        cleanup = body_node.children.find { |n| n.type == :rspock_cleanup }
         if cleanup && !cleanup.children.empty?
           ensure_node = s(:begin, *cleanup.children)
           ast = s(:kwbegin, s(:ensure, ast, ensure_node))

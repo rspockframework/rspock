@@ -189,6 +189,20 @@ module RSpock
           end
         end
 
+        test "#parse raises on irange with invalid min" do
+          ast = build_ast('("abc"..2) * receiver.message')
+          assert_raises InteractionParser::InteractionError do
+            @parser.parse(ast)
+          end
+        end
+
+        test "#parse raises on irange with invalid max" do
+          ast = build_ast('(1.."abc") * receiver.message')
+          assert_raises InteractionParser::InteractionError do
+            @parser.parse(ast)
+          end
+        end
+
         private
 
         def build_ast(source)

@@ -86,6 +86,34 @@ module RSpock
         )
       end
 
+      test "irange with method call as min" do
+        assert_transforms(
+          '(min_value..2) * receiver.message',
+          'receiver.expects(:message).at_least(min_value).at_most(2)'
+        )
+      end
+
+      test "irange with method call as max" do
+        assert_transforms(
+          '(1..max_value) * receiver.message',
+          'receiver.expects(:message).at_least(1).at_most(max_value)'
+        )
+      end
+
+      test "erange with method call as min" do
+        assert_transforms(
+          '(min_value...3) * receiver.message',
+          'receiver.expects(:message).at_least(min_value).at_most(3 - 1)'
+        )
+      end
+
+      test "erange with method call as max" do
+        assert_transforms(
+          '(1...max_value) * receiver.message',
+          'receiver.expects(:message).at_least(1).at_most(max_value - 1)'
+        )
+      end
+
       test ">> stubs return value" do
         assert_transforms(
           '1 * receiver.message >> "result"',
@@ -97,6 +125,27 @@ module RSpock
         assert_transforms(
           '1 * receiver.message(param1, param2) >> "result"',
           'receiver.expects(:message).with(param1, param2).times(1).returns("result")'
+        )
+      end
+
+      test ">> with complex expression" do
+        assert_transforms(
+          '1 * receiver.message >> [1, 2, 3]',
+          'receiver.expects(:message).times(1).returns([1, 2, 3])'
+        )
+      end
+
+      test ">> with range cardinality" do
+        assert_transforms(
+          '(1..3) * receiver.message >> "result"',
+          'receiver.expects(:message).at_least(1).at_most(3).returns("result")'
+        )
+      end
+
+      test ">> with any matcher cardinality" do
+        assert_transforms(
+          '_ * receiver.message >> "result"',
+          'receiver.expects(:message).at_least(0).returns("result")'
         )
       end
 

@@ -9,10 +9,8 @@ module RSpock
       # Input:  s(:block, s(:send, nil, :test, ...), s(:args), s(:begin, ...))
       # Output: s(:rspock_test,
       #           s(:rspock_def, method_call_node, args_node),
-      #           s(:rspock_given, ...),
-      #           s(:rspock_when, ...),
-      #           s(:rspock_then, ...),
-      #           s(:rspock_where, s(:rspock_where_header, ...), ...))
+      #           s(:rspock_body, s(:rspock_given, ...), s(:rspock_when, ...), ...),
+      #           s(:rspock_where, ...))   # optional
       class TestMethodParser
         include RSpock::AST::NodeBuilder
 
@@ -87,10 +85,17 @@ module RSpock
         end
 
         def build_rspock_ast(node, blocks)
-          rspock_children = []
-          rspock_children << s(:rspock_def, node.children[0], node.children[1])
-          blocks.each { |block| rspock_children << block.to_rspock_node }
-          s(:rspock_test, *rspock_children)
+          def_node = s(:rspock_def, node.children[0], node.children[1])
+          where_block = blocks.find { |b| b.type == :Where }
+          body_blocks = blocks.reject { |b| b.type == :Where }
+
+          body_node = s(:rspock_body, *body_blocks.map(&:to_rspock_node))
+
+          if where_block
+            s(:rspock_test, def_node, body_node, where_block.to_rspock_node)
+          else
+            s(:rspock_test, def_node, body_node)
+          end
         end
       end
     end

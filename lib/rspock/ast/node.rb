@@ -19,17 +19,13 @@ module RSpock
     class TestNode < Node
       register :rspock_test
 
-      def def_node
-        children.find { |n| n.type == :rspock_def }
-      end
+      def def_node   = children[0]
+      def body_node  = children[1]
+      def where_node = children[2]
+    end
 
-      def where_node
-        children.find { |n| n.type == :rspock_where }
-      end
-
-      def blocks
-        children.reject { |n| n.type == :rspock_def }
-      end
+    class BodyNode < Node
+      register :rspock_body
     end
 
     class DefNode < Node
