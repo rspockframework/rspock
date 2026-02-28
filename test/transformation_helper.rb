@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-require 'rspock/ast/comparison_to_assertion_transformation'
 require 'ast_transform/transformer'
 require 'ast_transform/transformation_helper'
 require 'string_helper'

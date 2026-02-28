@@ -41,13 +41,15 @@ module RSpock
           assert_equal [comparison], actual
         end
 
-        test "#to_rspock_node returns :rspock_expect node with children" do
+        test "#to_rspock_node returns :rspock_expect node with statement children" do
           @block << s(:send, 1, :==, 2)
           @block << s(:send, 1, :!=, 2)
 
           ir = @block.to_rspock_node
           assert_equal :rspock_expect, ir.type
           assert_equal 2, ir.children.length
+          assert_equal :rspock_binary_statement, ir.children[0].type
+          assert_equal :rspock_binary_statement, ir.children[1].type
         end
       end
     end

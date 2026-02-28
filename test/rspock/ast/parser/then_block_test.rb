@@ -50,7 +50,7 @@ module RSpock
           ir = @block.to_rspock_node
           assert_equal :rspock_then, ir.type
           assert_equal 1, ir.children.length
-          assert_equal :send, ir.children[0].type
+          assert_equal :rspock_binary_statement, ir.children[0].type
         end
 
         test "#to_rspock_node converts interaction nodes to :rspock_interaction" do
@@ -63,12 +63,15 @@ module RSpock
           assert_equal :rspock_interaction, ir.children[0].type
         end
 
-        test "#to_rspock_node preserves non-interaction children unchanged" do
-          comparison = s(:send, 1, :==, 2)
-          @block << comparison
+        test "#to_rspock_node wraps comparison children as binary statements" do
+          @block << s(:send, 1, :==, 2)
 
           ir = @block.to_rspock_node
-          assert_equal comparison, ir.children[0]
+          child = ir.children[0]
+          assert_equal :rspock_binary_statement, child.type
+          assert_equal 1, child.lhs
+          assert_equal s(:sym, :==), child.operator
+          assert_equal 2, child.rhs
         end
 
         test "#to_rspock_node parses interaction with correct structure" do
@@ -129,7 +132,7 @@ module RSpock
 
           ir = @block.to_rspock_node
           assert_equal 2, ir.children.length
-          assert_equal :send, ir.children[0].type
+          assert_equal :rspock_binary_statement, ir.children[0].type
           assert_equal :rspock_interaction, ir.children[1].type
         end
 

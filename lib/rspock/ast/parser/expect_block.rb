@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require 'rspock/ast/parser/block'
+require 'rspock/ast/parser/statement_parser'
 
 module RSpock
   module AST
@@ -19,6 +20,12 @@ module RSpock
 
         def successors
           @successors ||= [:Cleanup, :Where].freeze
+        end
+
+        def to_rspock_node
+          statement_parser = StatementParser.new
+          spock_children = @children.map { |child| statement_parser.parse(child) }
+          s(:rspock_expect, *spock_children)
         end
       end
     end
