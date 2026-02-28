@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require 'ast_transform/abstract_transformation'
 require 'rspock/ast/node'
-require 'rspock/ast/comparison_to_assertion_transformation'
+require 'rspock/ast/statement_to_assertion_transformation'
 require 'rspock/ast/header_nodes_transformation'
 require 'rspock/ast/interaction_to_mocha_mock_transformation'
 require 'rspock/ast/interaction_to_block_identity_assertion_transformation'
@@ -14,7 +14,7 @@ module RSpock
     class TestMethodTransformation < ASTTransform::AbstractTransformation
       def initialize(block_registry, strict: true)
         @parser = Parser::TestMethodParser.new(block_registry, strict: strict)
-        @comparison_transformation = ComparisonToAssertionTransformation.new(:_test_index_, :_line_number_)
+        @statement_transformation = StatementToAssertionTransformation.new
       end
 
       def run(node)
@@ -59,7 +59,7 @@ module RSpock
             interaction_setups << setup
             then_children << assertion unless assertion.equal?(child)
           else
-            then_children << @comparison_transformation.run(child)
+            then_children << transform_statement_or_passthrough(child)
           end
         end
 
@@ -77,8 +77,17 @@ module RSpock
       end
 
       def transform_expect_block(expect_node)
-        new_children = expect_node.children.map { |child| @comparison_transformation.run(child) }
+        new_children = expect_node.children.map { |child| transform_statement_or_passthrough(child) }
         expect_node.updated(nil, new_children)
+      end
+
+      def transform_statement_or_passthrough(child)
+        case child.type
+        when :rspock_binary_statement, :rspock_statement
+          @statement_transformation.run(child)
+        else
+          child
+        end
       end
 
       # --- Build final Ruby AST ---

@@ -16,7 +16,9 @@ Note: RSpock is heavily inspired by Spock for the Groovy programming language.
 
 * BDD-style code blocks: Given, When, Then, Expect, Cleanup, Where
 * Data-driven testing with incredibly expressive table-based Where blocks
-* Expressive assertions: Use familiar comparison operators `==` and `!=` for assertions!
+* Spock-style implicit assertions: every statement in Then/Expect blocks is an assertion (no assertion API needed)
+* Binary operator assertions: `==`, `!=`, `=~`, `!~`, `>`, `<`, `>=`, `<=` with clear error messages
+* General statement assertions: bare boolean expressions (e.g. `obj.valid?`, `list.include?(x)`) and negation (`!obj.empty?`) with source-text error messages
 * [Interaction-based testing](#mocking-with-interactions), i.e. `1 * object.receive("message")` in Then blocks, with optional [return value stubbing](#stubbing-return-values) via `>>`, [exception stubbing](#stubbing-exceptions) via `>> raises(...)`, and [block forwarding verification](#block-forwarding-verification) via `&block`
 * (Planned) BDD-style custom reporter that outputs information from Code Blocks
 * (Planned) Capture all Then block violations
@@ -150,15 +152,25 @@ The When block describes the stimulus to be applied to the system under test. It
 
 ```ruby
 Then "The product is added to the cart"
+!cart.products.empty?
 cart.products.size == 1
 cart.products.first == product
+cart.products.size > 0
 ```
 
-The Then block describes the response from the stimulus. Any comparison operators used in the Then block (`==` or `!=`) is transformed to assert_equal / refute_equal under the hood. By convention, the __LHS__ operand is considered the __actual__ value, while the __RHS__ operand is considered the __expected__ value.
+The Then block describes the response from the stimulus. Following Spock's core model, **every statement is an assertion** unless it's a variable assignment. No assertion API is needed.
+
+**Binary operators** (`==`, `!=`, `=~`, `!~`, `>`, `<`, `>=`, `<=`) produce clear error messages on failure. By convention, the **LHS** operand is the **actual** value and the **RHS** is the **expected** value.
+
+**General statements** (bare boolean expressions like `obj.valid?`, `list.include?(x)`) include the original source text in the error message, so you see exactly which expression failed. **Negation** (`!expr`) is detected automatically.
+
+**Variable assignments** pass through unchanged and execute in source order after the stimulus.
 
 #### Expect Block
 
-The Expect block is useful when expressing the stimulus and the response in one statement is more natural. For example, let's compare two equivalent ways of describing some behaviour:
+The Expect block is useful when expressing the stimulus and the response in one statement is more natural. The same assertion rules apply as in Then blocks — every statement is an assertion unless it's a variable assignment.
+
+For example, let's compare two equivalent ways of describing some behaviour:
 
 ##### When + Then
 ```ruby
@@ -173,6 +185,17 @@ actual == 2
 ```ruby
 Expect "absolute of -2 is 2"
 -2.abs == 2
+```
+
+The Expect block supports the full range of assertion expressions:
+
+```ruby
+Expect "string matching and predicates"
+str =~ /potato/
+str.include?("pot")
+!str.empty?
+str.length > 3
+str.length == 6
 ```
 
 A good rule of thumb is using When + Then blocks to describe methods with side-effects and Expect blocks to describe purely functional methods.
@@ -560,20 +583,24 @@ To install this gem onto your local machine, run `bundle exec rake install`.
 
 ## Releasing a New Version
 
-There are two ways to create a release. Both require that `version.rb` has already been updated and merged to main.
+There are two ways to create a release. Both require that `version.rb` has already been updated, `CHANGELOG.md` has been updated, and changes have been merged to main.
 
 ### Via GitHub UI
 
-1. Update `VERSION` in `lib/rspock/version.rb` and run `bundle install` to regenerate `Gemfile.lock`, commit, open a PR, and merge to main
-2. Go to the repo on GitHub → **Releases** → **Draft a new release**
-3. Enter a new tag (e.g. `v2.0.0`), select `main` as the target branch
-4. Add a title and release notes (GitHub can auto-generate these from merged PRs)
-5. Click **Publish release**
+1. Update `VERSION` in `lib/rspock/version.rb` and run `bundle install` to regenerate `Gemfile.lock`
+2. Move the `[Unreleased]` section in `CHANGELOG.md` to a new version heading with today's date (e.g. `## [2.4.0] - 2026-03-01`) and add a fresh empty `[Unreleased]` section above it. Update the comparison links at the bottom of the file.
+3. Commit, open a PR, and merge to main
+4. Go to the repo on GitHub → **Releases** → **Draft a new release**
+5. Enter a new tag (e.g. `v2.4.0`), select `main` as the target branch
+6. Add a title and release notes (GitHub can auto-generate these from merged PRs)
+7. Click **Publish release**
 
 ### Via CLI
 
-1. Update `VERSION` in `lib/rspock/version.rb` and run `bundle install` to regenerate `Gemfile.lock`, commit, open a PR, and merge to main
-2. Tag and push:
+1. Update `VERSION` in `lib/rspock/version.rb` and run `bundle install` to regenerate `Gemfile.lock`
+2. Move the `[Unreleased]` section in `CHANGELOG.md` to a new version heading with today's date and add a fresh empty `[Unreleased]` section above it. Update the comparison links at the bottom of the file.
+3. Commit, open a PR, and merge to main
+4. Tag and push:
    ```
    git checkout main && git pull
    git tag v2.0.0

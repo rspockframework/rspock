@@ -93,6 +93,21 @@ module RSpock
       def block_pass   = children[5]
     end
 
+    class BinaryStatementNode < Node
+      register :rspock_binary_statement
+
+      def lhs      = children[0]
+      def operator = children[1]
+      def rhs      = children[2]
+    end
+
+    class StatementNode < Node
+      register :rspock_statement
+
+      def expression = children[0]
+      def source     = children[1]
+    end
+
     module NodeBuilder
       include ASTTransform::TransformationHelper
 

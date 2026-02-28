@@ -65,6 +65,64 @@ class ExampleRSpockTest < Minitest::Test
     Cleanup
   end
 
+  # --- Statement assertions ---
+
+  test "regex match with =~ in Expect" do
+    Expect
+    "hello potato world" =~ /potato/
+  end
+
+  test "comparison operators in Then with #{a}" do
+    Given
+    stack = []
+
+    When
+    stack.push(a)
+
+    Then
+    stack.size == 1
+    stack.size > 0
+    stack.size >= 1
+    stack.size < 2
+    stack.size <= 1
+
+    Where
+    a
+    "potato"
+    "tomato"
+  end
+
+  test "bare boolean expressions in Expect" do
+    Expect
+    [1, 2, 3].include?(2)
+    "hello".is_a?(String)
+    "hello".respond_to?(:length)
+  end
+
+  test "negation in Then" do
+    Given
+    stack = [1]
+
+    When
+    stack.push(2)
+
+    Then
+    !stack.empty?
+    !stack.nil?
+  end
+
+  test "variable assignment in Then does not break" do
+    Given
+    stack = []
+
+    When
+    stack.push("item")
+
+    Then
+    result = stack.first
+    result == "item"
+  end
+
   test "interactions" do
     Given
     dep = mock
