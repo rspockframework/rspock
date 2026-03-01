@@ -25,6 +25,11 @@ module RSpock
         def to_rspock_node
           statement_parser = StatementParser.new
           spock_children = @children.map { |child| statement_parser.parse(child) }
+
+          if spock_children.any? { |c| c.type == :rspock_raises }
+            raise BlockError, "raises() is not supported in Expect blocks @ #{range}. Use a When + Then block instead."
+          end
+
           s(:rspock_expect, *spock_children)
         end
       end

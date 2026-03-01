@@ -14,7 +14,7 @@ module RSpock
       #   [1] receiver     - e.g. s(:send, nil, :subscriber)
       #   [2] message      - e.g. s(:sym, :receive)
       #   [3] args         - nil if no args, s(:array, *arg_nodes) otherwise
-      #   [4] outcome      - nil if no >>, otherwise s(:rspock_returns, value) or s(:rspock_raises, *args)
+      #   [4] outcome      - nil if no >>, otherwise s(:rspock_stub_returns, value) or s(:rspock_stub_raises, *args)
       #   [5] block_pass   - nil if no &, otherwise s(:block_pass, ...)
       class InteractionParser
         include RSpock::AST::NodeBuilder
@@ -63,9 +63,9 @@ module RSpock
 
         def parse_outcome(node)
           if node.type == :send && node.children[0].nil? && node.children[1] == :raises
-            s(:rspock_raises, *node.children[2..])
+            s(:rspock_stub_raises, *node.children[2..])
           else
-            s(:rspock_returns, node)
+            s(:rspock_stub_returns, node)
           end
         end
 

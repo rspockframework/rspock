@@ -73,12 +73,20 @@ module RSpock
     class OutcomeNode < Node
     end
 
-    class ReturnsNode < OutcomeNode
-      register :rspock_returns
+    class StubReturnsNode < OutcomeNode
+      register :rspock_stub_returns
     end
 
-    class RaisesNode < OutcomeNode
+    class StubRaisesNode < OutcomeNode
+      register :rspock_stub_raises
+    end
+
+    class RaisesNode < Node
       register :rspock_raises
+
+      def exception_class = children[0]
+      def capture_var     = children[1]
+      def capture_name    = capture_var&.children&.[](0)
     end
 
     class InteractionNode < Node

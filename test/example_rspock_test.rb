@@ -123,6 +123,44 @@ class ExampleRSpockTest < Minitest::Test
     result == "item"
   end
 
+  # --- Raises conditions ---
+
+  test "raises catches expected exception" do
+    Given
+    stack = []
+
+    When
+    stack.fetch(99)
+
+    Then
+    raises IndexError
+  end
+
+  test "raises with capture allows property assertions" do
+    Given
+    stack = []
+
+    When
+    stack.fetch(99)
+
+    Then
+    e = raises IndexError
+    e.message =~ /index 99/
+  end
+
+  test "raises with Where block for #{error_class}" do
+    When
+    Integer(input)
+
+    Then
+    raises error_class
+
+    Where
+    input   | error_class
+    "abc"   | ArgumentError
+    "hello" | ArgumentError
+  end
+
   test "interactions" do
     Given
     dep = mock

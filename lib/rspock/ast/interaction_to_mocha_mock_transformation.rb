@@ -10,14 +10,14 @@ module RSpock
     # Output: receiver.expects(:message).with(*args).times(n).returns(value)
     #
     # The outcome node type maps directly to the Mocha chain method:
-    #   :rspock_returns -> .returns(value)
-    #   :rspock_raises  -> .raises(exception_class, ...)
+    #   :rspock_stub_returns -> .returns(value)
+    #   :rspock_stub_raises  -> .raises(exception_class, ...)
     #
     # When block_pass is present, wraps the expects chain with a BlockCapture.capture call.
     class InteractionToMochaMockTransformation < ASTTransform::AbstractTransformation
       OUTCOME_METHODS = {
-        rspock_returns: :returns,
-        rspock_raises: :raises,
+        rspock_stub_returns: :returns,
+        rspock_stub_raises: :raises,
       }.freeze
 
       def initialize(index = 0)

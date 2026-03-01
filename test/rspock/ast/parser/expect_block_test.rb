@@ -41,6 +41,15 @@ module RSpock
           assert_equal [comparison], actual
         end
 
+        test "#to_rspock_node raises error when raises() is used" do
+          @transformer = ASTTransform::Transformer.new
+          @block << @transformer.build_ast('raises EmptyStackError')
+
+          assert_raises BlockError do
+            @block.to_rspock_node
+          end
+        end
+
         test "#to_rspock_node returns :rspock_expect node with statement children" do
           @block << s(:send, 1, :==, 2)
           @block << s(:send, 1, :!=, 2)

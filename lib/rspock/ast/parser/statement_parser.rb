@@ -16,6 +16,7 @@ module RSpock
         ASSIGNMENT_TYPES = %i[lvasgn masgn op_asgn or_asgn and_asgn].freeze
 
         def parse(node)
+          return build_raises(node) if raises_condition?(node)
           return node if assignment?(node)
           return build_binary_statement(node) if binary_statement?(node)
 
@@ -23,6 +24,32 @@ module RSpock
         end
 
         private
+
+        def raises_condition?(node)
+          direct_raises?(node) || assigned_raises?(node)
+        end
+
+        def direct_raises?(node)
+          node.type == :send && node.children[0].nil? && node.children[1] == :raises
+        end
+
+        def assigned_raises?(node)
+          node.type == :lvasgn &&
+            node.children[1]&.type == :send &&
+            node.children[1].children[0].nil? &&
+            node.children[1].children[1] == :raises
+        end
+
+        def build_raises(node)
+          if node.type == :lvasgn
+            variable = s(:sym, node.children[0])
+            exception_class = node.children[1].children[2]
+            s(:rspock_raises, exception_class, variable)
+          else
+            exception_class = node.children[2]
+            s(:rspock_raises, exception_class)
+          end
+        end
 
         def assignment?(node)
           ASSIGNMENT_TYPES.include?(node.type)

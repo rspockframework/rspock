@@ -122,21 +122,21 @@ module RSpock
           assert_nil ir.outcome
         end
 
-        test "#parse wraps >> value in :rspock_returns" do
+        test "#parse wraps >> value in :rspock_stub_returns" do
           ir = parse('1 * receiver.message >> "result"')
-          assert_equal :rspock_returns, ir.outcome.type
+          assert_equal :rspock_stub_returns, ir.outcome.type
           assert_equal s(:str, "result"), ir.outcome.children[0]
         end
 
-        test "#parse wraps >> raises(ExClass) in :rspock_raises" do
+        test "#parse wraps >> raises(ExClass) in :rspock_stub_raises" do
           ir = parse('1 * receiver.message >> raises(SomeError)')
-          assert_equal :rspock_raises, ir.outcome.type
+          assert_equal :rspock_stub_raises, ir.outcome.type
           assert_equal :const, ir.outcome.children[0].type
         end
 
-        test "#parse wraps >> raises(ExClass, msg) in :rspock_raises with two children" do
+        test "#parse wraps >> raises(ExClass, msg) in :rspock_stub_raises with two children" do
           ir = parse('1 * receiver.message >> raises(SomeError, "oops")')
-          assert_equal :rspock_raises, ir.outcome.type
+          assert_equal :rspock_stub_raises, ir.outcome.type
           assert_equal 2, ir.outcome.children.length
           assert_equal :const, ir.outcome.children[0].type
           assert_equal s(:str, "oops"), ir.outcome.children[1]
