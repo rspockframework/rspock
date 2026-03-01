@@ -117,16 +117,25 @@ module RSpock
 
       def build_test_body(body_node, hoisted_setups)
         body_children = []
+        blocks = body_node.children
 
-        body_node.children.each do |block_node|
+        blocks.each_with_index do |block_node, i|
           case block_node.type
           when :rspock_given
             body_children.concat(block_node.children)
           when :rspock_when
             body_children.concat(hoisted_setups)
-            body_children.concat(block_node.children)
+            raises_node = find_raises_in_next_then(blocks, i)
+
+            if raises_node
+              body_children << build_assert_raises(block_node, raises_node)
+            else
+              body_children.concat(block_node.children)
+            end
           when :rspock_then, :rspock_expect
-            body_children.concat(block_node.children)
+            block_node.children.each do |child|
+              body_children << child unless child.type == :rspock_raises
+            end
           when :rspock_cleanup
             # handled below as ensure
           end
@@ -141,6 +150,31 @@ module RSpock
         end
 
         MethodCallToLVarTransformation.new(:_test_index_, :_line_number_).run(ast)
+      end
+
+      # --- Raises condition helpers ---
+
+      def find_raises_in_next_then(blocks, current_index)
+        next_block = blocks[current_index + 1]
+        return nil unless next_block&.type == :rspock_then
+
+        next_block.children.find { |c| c.type == :rspock_raises }
+      end
+
+      def build_assert_raises(when_node, raises_node)
+        when_body = when_node.children.length == 1 ? when_node.children[0] : s(:begin, *when_node.children)
+
+        assert_raises_call = s(:block,
+          s(:send, nil, :assert_raises, raises_node.exception_class),
+          s(:args),
+          when_body
+        )
+
+        if raises_node.capture_name
+          s(:lvasgn, raises_node.capture_name, assert_raises_call)
+        else
+          assert_raises_call
+        end
       end
 
       # --- Where block helpers ---

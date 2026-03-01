@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Exception conditions: `raises ExceptionClass` in Then blocks wraps the preceding When block in an exception assertion.
+- Exception capture: `e = raises ExceptionClass` captures the exception for further assertions in the same Then block.
+- Exception conditions work with data-driven `Where` blocks.
+
+### Changed
+
+- Renamed interaction outcome nodes from `rspock_returns` / `rspock_raises` to `rspock_stub_returns` / `rspock_stub_raises` to distinguish them from the new exception condition `rspock_raises`.
+
 ## [2.4.0] - 2026-02-28
 
 ### Added

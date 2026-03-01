@@ -171,6 +171,41 @@ module RSpock
           assert_equal :rspock_statement, result.type
         end
 
+        # --- Raises condition ---
+
+        test "#parse wraps raises(ExClass) in :rspock_raises" do
+          ast = build_ast('raises EmptyStackError')
+          result = @parser.parse(ast)
+
+          assert_equal :rspock_raises, result.type
+          assert_equal s(:const, nil, :EmptyStackError), result.exception_class
+          assert_nil result.capture_var
+        end
+
+        test "#parse wraps e = raises(ExClass) in :rspock_raises with capture_var" do
+          ast = build_ast('e = raises EmptyStackError')
+          result = @parser.parse(ast)
+
+          assert_equal :rspock_raises, result.type
+          assert_equal s(:const, nil, :EmptyStackError), result.exception_class
+          assert_equal s(:sym, :e), result.capture_var
+          assert_equal :e, result.capture_name
+        end
+
+        test "#parse does not treat regular assignment as raises condition" do
+          ast = build_ast('x = 1')
+          result = @parser.parse(ast)
+
+          assert_equal :lvasgn, result.type
+        end
+
+        test "#parse does not treat receiver.raises as raises condition" do
+          ast = build_ast('obj.raises')
+          result = @parser.parse(ast)
+
+          assert_equal :rspock_statement, result.type
+        end
+
         # --- Does not classify non-binary sends as binary ---
 
         test "#parse does not treat method call with args as binary statement" do

@@ -122,7 +122,7 @@ module RSpock
 
           outcome = interaction.outcome
           refute_nil outcome
-          assert_equal :rspock_returns, outcome.type
+          assert_equal :rspock_stub_returns, outcome.type
         end
 
         test "#to_rspock_node handles mixed interaction and comparison nodes" do
@@ -134,6 +134,25 @@ module RSpock
           assert_equal 2, ir.children.length
           assert_equal :rspock_binary_statement, ir.children[0].type
           assert_equal :rspock_interaction, ir.children[1].type
+        end
+
+        test "#to_rspock_node converts raises() to :rspock_raises" do
+          node = @transformer.build_ast('raises EmptyStackError')
+          @block << node
+
+          ir = @block.to_rspock_node
+          assert_equal :rspock_then, ir.type
+          assert_equal 1, ir.children.length
+          assert_equal :rspock_raises, ir.children[0].type
+        end
+
+        test "#to_rspock_node raises on multiple raises() conditions" do
+          @block << @transformer.build_ast('raises EmptyStackError')
+          @block << @transformer.build_ast('raises AnotherError')
+
+          assert_raises BlockError do
+            @block.to_rspock_node
+          end
         end
 
         test "#to_rspock_node with multiple interactions has correct indices" do

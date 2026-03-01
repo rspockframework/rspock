@@ -30,6 +30,11 @@ module RSpock
             statement_parser.parse(child)
           end
 
+          raises_count = spock_children.count { |c| c.type == :rspock_raises }
+          if raises_count > 1
+            raise BlockError, "Then block @ #{range} may contain at most one raises() condition"
+          end
+
           s(:rspock_then, *spock_children)
         end
       end

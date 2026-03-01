@@ -19,6 +19,7 @@ Note: RSpock is heavily inspired by Spock for the Groovy programming language.
 * Spock-style implicit assertions: every statement in Then/Expect blocks is an assertion (no assertion API needed)
 * Binary operator assertions: `==`, `!=`, `=~`, `!~`, `>`, `<`, `>=`, `<=` with clear error messages
 * General statement assertions: bare boolean expressions (e.g. `obj.valid?`, `list.include?(x)`) and negation (`!obj.empty?`) with source-text error messages
+* [Exception conditions](#exception-conditions): `raises ExceptionClass` in Then blocks wraps the When block in an exception assertion, with optional capture for property assertions
 * [Interaction-based testing](#mocking-with-interactions), i.e. `1 * object.receive("message")` in Then blocks, with optional [return value stubbing](#stubbing-return-values) via `>>`, [exception stubbing](#stubbing-exceptions) via `>> raises(...)`, and [block forwarding verification](#block-forwarding-verification) via `&block`
 * (Planned) BDD-style custom reporter that outputs information from Code Blocks
 * (Planned) Capture all Then block violations
@@ -165,6 +166,46 @@ The Then block describes the response from the stimulus. Following Spock's core 
 **General statements** (bare boolean expressions like `obj.valid?`, `list.include?(x)`) include the original source text in the error message, so you see exactly which expression failed. **Negation** (`!expr`) is detected automatically.
 
 **Variable assignments** pass through unchanged and execute in source order after the stimulus.
+
+##### Exception Conditions
+
+Use `raises` in a Then block to assert that the preceding When block raises a specific exception:
+
+```ruby
+When "Dividing by zero"
+1 / 0
+
+Then "An error is raised"
+raises ZeroDivisionError
+```
+
+To inspect the exception, capture it into a variable:
+
+```ruby
+When "Parsing bad input"
+JSON.parse("not json")
+
+Then "A parse error is raised with a message"
+e = raises JSON::ParserError
+e.message.include?("unexpected token")
+```
+
+The captured variable is available for further assertions in the same Then block. Exception conditions work with data-driven `Where` blocks as well:
+
+```ruby
+When "Parsing invalid input"
+JSON.parse(input)
+
+Then "The expected error is raised"
+raises expected_error
+
+Where
+input          | expected_error
+"not json"     | JSON::ParserError
+"{invalid"     | JSON::ParserError
+```
+
+Only **one** `raises` condition is allowed per Then block, and `raises` is **not supported** in Expect blocks (use a When + Then block instead).
 
 #### Expect Block
 
