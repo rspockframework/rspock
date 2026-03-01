@@ -537,6 +537,53 @@ end
 
 **Note**: Inline blocks (`do...end` or `{ }`) are not supported in interactions and will raise an `InteractionError`. Use a named proc or lambda variable with `&` instead, since block forwarding verification requires a reference to compare against.
 
+#### Why Interactions Don't Support Block Yielding
+
+In Groovy Spock, you can make a mocked method yield its block via closure-based interaction responses. RSpock intentionally omits this. The `>>` operator stubs a return value only — it does not invoke the block argument passed to the mocked method.
+
+This is a deliberate design choice. If your test requires a mock to yield a block, it typically indicates one of two design smells:
+
+1. **The unit under test is doing too much.** A method that passes a block to a collaborator and then depends on that block's side effects to function correctly has too much coupling between the block body and the surrounding logic. Split the block's work into a separate, independently testable step.
+
+2. **The interaction boundary is in the wrong place.** If the block reads from IO, mutates state, or produces a return value that the caller depends on, the mock boundary cuts through the middle of a single responsibility. Restructure so the mock boundary sits between responsibilities, not within one.
+
+**Example: the better pattern**
+
+Suppose you have a method that wraps work in a block-based collaborator:
+
+```ruby
+# Tightly coupled — block body depends on IO and collaborator
+def handle_spin(label, io)
+  @ui.with_spinner(label) do
+    drain_lines(io)  # block reads from IO; impossible to mock without yielding
+  end
+end
+```
+
+Testing this requires the mock to yield the block, otherwise `drain_lines` never runs and the IO stream is left unread. The fix is to separate the two concerns:
+
+```ruby
+# Decoupled — each step is independently testable
+def handle_spin(label, io)
+  success = drain_lines(io)
+  success ? @ui.ok(label) : @ui.fail(label)
+end
+```
+
+Now `drain_lines` can be tested in isolation with a real IO (e.g. `StringIO`), and the UI interaction is a simple mock expectation with no block involved:
+
+```ruby
+test "reports ok after draining" do
+  When "handle_spin completes"
+  handle_spin("Fetching", io)
+
+  Then "ok is called"
+  1 * @ui.ok("Fetching")
+end
+```
+
+This produces tests that are simpler, more explicit, and less coupled to implementation details. The constraint is the feature.
+
 ## Debugging
 
 ### Pry
