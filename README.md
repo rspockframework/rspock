@@ -5,7 +5,7 @@
 
 RSpock is a testing and specification framework built on top of Minitest. It intends to give back productivity to its users with its incredibly simple yet highly expressive specification language.
 
-Note: RSpock is heavily inspired by Spock for the Groovy programming language.
+Note: RSpock is heavily inspired by [Spock](https://github.com/spockframework/spock) for the Groovy programming language.
 
 ## Goals
 
