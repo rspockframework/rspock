@@ -23,14 +23,16 @@ NOT — it evaluates and silently discards.**
 
 Consequences:
 
-- Never write `assert_equal a, b` in an RSpock test — write `a == b` in a
-  Then/Expect block. The transform compiles it to an assertion with a
-  proper failure message.
-- Never write bare comparisons in a plain Minitest class expecting them to
-  assert. A file missing the `transform!` annotation is a silently green
-  test suite.
-- When editing a test file, first check for the `transform!` line at the
-  class definition; it decides which dialect you are writing.
+- Inside a `transform!` class, write expression assertions — `a == b` in a
+  Then/Expect block. The transform compiles them to assertions with proper
+  failure messages; the Minitest assert API is not the dialect here.
+- In a plain Minitest class, use the assert API (`assert_equal` and
+  friends). A bare comparison there evaluates and discards — a silently
+  green test.
+- When editing a test file, first check for the `transform!` line at each
+  class definition; it decides which dialect that class speaks. Both
+  styles may legitimately coexist in one file (see `strict: false` below)
+  — match the dialect of the class you are in.
 
 ## Boilerplate
 
@@ -46,9 +48,15 @@ end
 ```
 
 The application must install the hook once (usually in the test helper):
-`require "ast_transform"; ASTTransform.install`. Mixed files can use
+`require "ast_transform"; ASTTransform.install`. In a Rails app, also run
+`rails g rspock:install` once — it adds an initializer registering
+RSpock's filter with `Rails.backtrace_cleaner`, without which failure
+backtraces point into transformed code instead of your source lines
+(non-Rails projects need nothing; a bundled Minitest plugin handles it).
+Mixed files can use
 `transform!(RSpock::AST::Transformation.new(strict: false))` to allow
-plain Minitest tests alongside.
+plain Minitest tests alongside — this exists to ease gradual migration,
+so treat mixed files as normal, not as something to unify.
 
 The transform is an abstraction — trust it. If you ever need to see the
 compiled Ruby (debugging only, never as routine verification), the
@@ -102,8 +110,18 @@ end
 Header names become local variables and interpolate into the test name.
 The table is evaluated in class scope — it cannot see instance methods or
 test-local variables. Order rows like a truth table; rightmost column is
-the expected result. `_test_index_` / `_line_number_` are available for
-pinpointing failing rows.
+the expected result.
+
+To generate an exhaustive table instead of writing it by hand:
+
+```
+rake rspock:truth_table -- a=-1,0,1 b=-1,0,1 expected_result="'?'"
+```
+
+It emits the formatted cross-product (fill the `'?'` column manually).
+Escape commas inside a value with `\,` (e.g. `b="gen(1\, 2)","gen(3\, 4)"`).
+Non-Rails projects must load the gem's Rakefile once to get the task —
+see the README's installation section.
 
 ## Interaction mocking (Then only)
 
@@ -111,7 +129,9 @@ pinpointing failing rows.
 Then
 1 * subscriber.receive("hello")                 # exactly one call
 0 * mailer.deliver                              # must never be called
-(1..3) * poller.tick                            # range cardinality
+(1..3) * poller.tick                            # between one and three
+(1.._) * poller.tick                            # at least once
+(_..3) * poller.tick                            # at most three times
 _ * cache.fetch("key") >> cached                # any count, stubbed return
 1 * repo.find(42) >> raises(RecordNotFound)     # stubbed exception
 1 * ui.frame("Build", &my_block)                # block-identity check
@@ -123,6 +143,19 @@ RSpock handles ordering. Compiles to Mocha. Inline blocks (`{ }` /
 Mocks never yield blocks by design: needing that signals the unit under
 test is doing too much — restructure so the mock boundary sits between
 responsibilities.
+
+## Debugging failures
+
+- Backtraces are source-mapped: line numbers point at the file you wrote,
+  not the transformed output. Trust them; don't second-guess against
+  `tmp/ast_transform/`.
+- In Where-driven tests, the generated test name embeds the failing row's
+  test index and source line number — read those from the failure output
+  to identify the row. The same values are available in test scope as
+  `_test_index_` (zero-based) and `_line_number_`, e.g. for a conditional
+  `binding.pry if _line_number_ == 15` when debugging interactively.
+  Comparisons against them in Then/Expect blocks are not transformed into
+  assertions.
 
 ## Pitfalls (wrong → right)
 
