@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Regression tests for backtrace source mapping: unit coverage for `RSpock::BacktraceFilter` / `RSpock::Minitest::BacktraceFilter`, and a subprocess integration test pinning that failing tests report source line numbers — including one documenting that the Minitest plugin filter is still required for line mapping (ast-transform alone only corrects file paths).
+
 ## [2.5.0] - 2026-02-28
 
 ### Added
