@@ -11,7 +11,7 @@ GIT
 PATH
   remote: .
   specs:
-    rspock (2.5.0)
+    rspock (3.0.0)
       ast_transform (~> 3.0)
       minitest (~> 5.0)
       mocha (>= 1.0)

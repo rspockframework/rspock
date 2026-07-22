@@ -59,11 +59,7 @@ load rakefile
 
 ### Rails
 
-If you are using Rails, it is necessary to add a filter to *Rails.backtrace_cleaner* for [source mapping](#backtraces) to work, so that you get proper line numbers in Minitest backtraces. For your convenience, we've built a Rails Generator just for that:
-
-    $ rails g rspock:install
-
-Note: If you are not using Rails, you don't have anything to do, as RSpock includes a Minitest plugin that will set its own backtrace filter.
+No Rails-specific setup is required. Backtraces and debuggers show correct source locations natively (see [Debugging](#debugging)), so there is no backtrace cleaner to configure.
 
 ## Usage
 
@@ -296,6 +292,8 @@ This effectively creates one version of the Feature Method for each data row. No
 ##### Test Name Interpolation
 
 You might have noticed above that the test name contains string interpolations, that's one of the features of RSpock! You can interpolate test names and use Where block header variables to parameterize the test name using the test data.
+
+RSpock also appends each data row's index and source line number to the generated test name (e.g. `... 1 line 15`). This keeps names unique for identical data rows and gives the `-n` selector a stable target for isolating a row (see [Isolating a Where Block row](#isolating-a-where-block-row)).
 
 ##### Truth Table
 
@@ -586,47 +584,19 @@ This produces tests that are simpler, more explicit, and less coupled to impleme
 
 ## Debugging
 
-### Pry
+Debugging just works. The transformed code is emitted line-aligned — every statement occupies its original source line — so backtraces, failure messages, `break file:line` breakpoints, and debugger display (Pry, byebug, debug.rb) all point at the file you wrote, with no filtering or mapping layer in between. The transformed files under `tmp/ast_transform` are a pure debugging artifact: their line numbers match your source exactly.
 
-Let's be honest, at some point you will need to debug your tests. Because RSpock requires transforming the AST, the executed code is slightly different from the source code that you wrote. Although we have plans to add Source Mapping support in Pry so that you can see the exact source code you wrote, this is not currently available. This means that code shown in the Pry console will be slightly different. We think the value of using RSpock greatly outweighs this current limitation. We encourage you to try debugging a test to see what the transformed code looks like, or look through `tmp/rspock` for the transformed files.
+One documented oddity: interaction setups in a `Then` block execute *before* the `When` body (see [Execution Order](#execution-order)), so stepping through a test with interactions jumps from the interaction lines back up to the `When` line once.
 
-### Backtraces
+### Isolating a Where Block row
 
-RSpock supports Source Mapping so that backtraces for the executed code point to the correct line numbers in your source code, and so that the correct files are referenced. This is achieved through wrapping the executed code in rescue blocks, processing the backtraces (source mapping) and re-raising the error.
+Each `Where` data row generates a separate test whose name embeds the row's index and source line number (e.g. `... 1 line 15`), so isolating a row is standard Minitest:
 
-### Tips and Tricks
+* **Newly failing row:** copy the rerun command printed with the failure (the test name embeds the row line), add a plain `binding.pry` (or `debugger`) in the test body, and run it. It fires exactly once, for that row, with the column values inspectable as locals.
+* **Chosen row by position:** run with `-n` and a regex on the row's line number from your editor gutter, e.g. `-n /line_15/`.
+* **Chosen row by meaning:** use a conditional break on the column locals themselves, e.g. `binding.pry if input == "not json"` — this survives row reordering.
 
-#### _test_index_ and _line_number_
-
-The generated test name for each test case will contain the test index and the line number, corresponding to the Where Block data row for that case, which is available in the test scope as `_test_index_` and `_line_number_` respectively. This can be leveraged to conditionally break on certain test cases, so that you can have a more granular debugging session.
-
-```ruby
-test "Adding #{a} and #{b} results in #{c}" do
-  When "Adding two numbers"
-  actual = a + b
-
-  Then "We get the expected result"
-  # Breaks on the first test case
-  binding.pry if _test_index_ == 0
-  # Breaks on the second test case
-  binding.pry if _line_number_ == 15
-  actual == c
-
-  Where
-  a | b | c
-  1 | 2 | 3
-  4 | 5 | 9 # Line 15
-end
-```
-
-A few notes:
-
-* Comparison with `_test_index_` and `_line_number_` is not transformed to assertions in Then and Expect Code Blocks
-* `_test_index_` is zero-based, meaning the index of the first test case is `0`
-
-#### _line_number_
-
-The Line number is extremely useful for figuring out exactly which test case failed in your Where Block, especially if you have many rows in your Where Block data table.
+Note: a source-line *breakpoint* on a data row cannot isolate that row's run — the Where table is evaluated once, in class scope, when tests are defined. Name-selection is the row-isolation mechanism.
 
 ## More info
 

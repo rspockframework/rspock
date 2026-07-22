@@ -5,11 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.0.0] - Unreleased
+
+### Changed
+
+- Adopted ast_transform 3.0 line-aligned emission: transformed code is emitted with every statement on its original source line, so backtraces, failure messages, breakpoints, and debugger display are source-true natively — with zero runtime filtering.
+- Interactions in Then blocks are emitted at their own source lines; the When body they must follow is deferred via ast_transform's deferral facility instead of textually hoisting the interaction setups.
+- Where-driven test names now embed the row line via internal block parameters (`__rspock_row_index__` / `__rspock_row_line__`); the appended `<index> line <line>` name suffix is unchanged.
+- RSpock node classes now register on `ASTTransform::Node` (the promoted registry) instead of RSpock's hand-rolled `Node::REGISTRY`/`NodeBuilder`.
+
+### Removed
+
+- **Breaking:** the `_test_index_` and `_line_number_` test-scope variables. Isolate a Where row by running its generated test by name (the name embeds the row line; the failure output prints the exact rerun command) and break normally — see the README's "Isolating a Where Block row".
+- **Breaking:** the Rails generator (`rails g rspock:install`) and its backtrace-cleaner initializer template — there is no backtrace cleaning to configure anymore.
+- `RSpock::BacktraceFilter`, `RSpock::Minitest::BacktraceFilter`, and the Minitest plugin (`minitest/rspock_plugin`) — line-aligned emission makes raw VM line numbers the source line numbers, so the whole mapping apparatus is gone.
+- The rescue wrapper previously injected around transformed class bodies for backtrace mapping.
+- `MethodCallToLVarTransformation` (only existed to service `_test_index_`/`_line_number_`).
 
 ### Added
 
-- Regression tests for backtrace source mapping: unit coverage for `RSpock::BacktraceFilter` / `RSpock::Minitest::BacktraceFilter`, and a subprocess integration test pinning that failing tests report source line numbers — including one documenting that the Minitest plugin filter is still required for line mapping (ast-transform alone only corrects file paths).
+- Subprocess acceptance tests pinning line-aligned behavior end to end: Then assertion failures, failing Where rows, interaction setups, and Cleanup failures all cite their own source lines with zero filter machinery.
+- The rspock agent skill (`skills/rspock/SKILL.md`) ships in the gem: the RSpock dialect's mechanics, pitfalls, and debugging triage for coding agents.
 
 ## [2.5.0] - 2026-02-28
 
