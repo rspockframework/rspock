@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'ast_transform/transformation_helper'
 require 'rspock/ast/node'
 
 module RSpock
@@ -10,7 +11,7 @@ module RSpock
       # - Binary operators (==, !=, =~, etc.) become :rspock_binary_statement nodes.
       # - Everything else becomes :rspock_statement nodes with the original source text captured.
       class StatementParser
-        include RSpock::AST::NodeBuilder
+        include ASTTransform::TransformationHelper
 
         BINARY_OPERATORS = %i[== != =~ !~ > < >= <=].freeze
         ASSIGNMENT_TYPES = %i[lvasgn masgn op_asgn or_asgn and_asgn].freeze
@@ -44,10 +45,10 @@ module RSpock
           if node.type == :lvasgn
             variable = s(:sym, node.children[0])
             exception_class = node.children[1].children[2]
-            s(:rspock_raises, exception_class, variable)
+            s_anchored(node, :rspock_raises, exception_class, variable)
           else
             exception_class = node.children[2]
-            s(:rspock_raises, exception_class)
+            s_anchored(node, :rspock_raises, exception_class)
           end
         end
 
@@ -61,13 +62,20 @@ module RSpock
             BINARY_OPERATORS.include?(node.children[1])
         end
 
+        # RSpock IR nodes are anchored at the statement they classify, so the
+        # assertions they lower into are emitted at the statement's source line.
         def build_binary_statement(node)
-          s(:rspock_binary_statement, node.children[0], s(:sym, node.children[1]), node.children[2])
+          s_anchored(node, :rspock_binary_statement, node.children[0], s(:sym, node.children[1]), node.children[2])
         end
 
         def build_statement(node)
           source = node.loc&.expression&.source || node.inspect
-          s(:rspock_statement, node, s(:str, source))
+          s_anchored(node, :rspock_statement, node, s(:str, source))
+        end
+
+        # s_at that tolerates loc-less anchors (unit tests build synthetic ASTs).
+        def s_anchored(anchor, type, *children)
+          anchor.loc&.expression ? s_at(anchor, type, *children) : s(type, *children)
         end
       end
     end

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'ast_transform/transformation_helper'
 require 'rspock/ast/node'
 
 module RSpock
@@ -17,7 +18,7 @@ module RSpock
       #   [4] outcome      - nil if no >>, otherwise s(:rspock_stub_returns, value) or s(:rspock_stub_raises, *args)
       #   [5] block_pass   - nil if no &, otherwise s(:block_pass, ...)
       class InteractionParser
-        include RSpock::AST::NodeBuilder
+        include ASTTransform::TransformationHelper
 
         class InteractionError < RuntimeError; end
 
@@ -34,6 +35,10 @@ module RSpock
         def parse(node)
           return node unless interaction_node?(node)
 
+          # Anchor at the full interaction expression (including >> outcome), so
+          # the Mocha setup it lowers into is emitted at the interaction's line.
+          anchor = node
+
           if return_value_node?(node)
             outcome = parse_outcome(node.children[2])
             node = node.children[0]
@@ -45,7 +50,7 @@ module RSpock
           rhs = node.children[2]
           receiver, message, args, block_pass = parse_rhs(rhs)
 
-          s(:rspock_interaction,
+          interaction = s(:rspock_interaction,
             cardinality,
             receiver,
             s(:sym, message),
@@ -53,6 +58,8 @@ module RSpock
             outcome,
             block_pass
           )
+
+          anchor.loc&.expression ? s_at(anchor, interaction.type, *interaction.children) : interaction
         end
 
         private

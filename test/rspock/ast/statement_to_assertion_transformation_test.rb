@@ -144,11 +144,11 @@ module RSpock
       private
 
       def build_binary(op, lhs, rhs)
-        RSpock::AST::Node.build(:rspock_binary_statement, lhs, s(:sym, op), rhs)
+        s(:rspock_binary_statement, lhs, s(:sym, op), rhs)
       end
 
       def build_statement(expr, source_text)
-        RSpock::AST::Node.build(:rspock_statement, expr, s(:str, source_text))
+        s(:rspock_statement, expr, s(:str, source_text))
       end
     end
   end

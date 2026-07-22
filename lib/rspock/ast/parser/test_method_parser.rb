@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'ast_transform/transformation_helper'
 require 'rspock/ast/node'
 
 module RSpock
@@ -12,7 +13,7 @@ module RSpock
       #           s(:rspock_body, s(:rspock_given, ...), s(:rspock_when, ...), ...),
       #           s(:rspock_where, ...))   # optional
       class TestMethodParser
-        include RSpock::AST::NodeBuilder
+        include ASTTransform::TransformationHelper
 
         def initialize(block_registry, strict: true)
           @block_registry = block_registry

@@ -1,8 +1,18 @@
+GIT
+  remote: https://github.com/rspockframework/ast-transform.git
+  revision: eb7313ce63fb838515efb2ccaf8d880dda28d95b
+  branch: jpd/line-aligned-emission
+  specs:
+    ast_transform (3.0.0)
+      parser (>= 3.0)
+      prism (>= 1.5)
+      unparser (>= 0.6)
+
 PATH
   remote: .
   specs:
     rspock (2.5.0)
-      ast_transform (~> 2.0)
+      ast_transform (~> 3.0)
       minitest (~> 5.0)
       mocha (>= 1.0)
       parser (>= 3.0)
@@ -13,10 +23,6 @@ GEM
   specs:
     ansi (1.5.0)
     ast (2.4.3)
-    ast_transform (2.1.4)
-      parser (>= 3.0)
-      prism (>= 1.5)
-      unparser (>= 0.6)
     builder (3.3.0)
     byebug (13.0.0)
       reline (>= 0.6.0)
@@ -33,7 +39,7 @@ GEM
       ruby-progressbar
     mocha (3.0.2)
       ruby2_keywords (>= 0.0.5)
-    parser (3.3.10.2)
+    parser (3.3.12.0)
       ast (~> 2.4.1)
       racc
     prism (1.9.0)
@@ -56,7 +62,7 @@ GEM
       simplecov_json_formatter (~> 0.1)
     simplecov-html (0.13.2)
     simplecov_json_formatter (0.1.4)
-    unparser (0.8.2)
+    unparser (0.9.0)
       diff-lcs (>= 1.6, < 3)
       parser (>= 3.3.0)
       prism (>= 1.5.1)
@@ -66,6 +72,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  ast_transform!
   bundler (>= 2.1)
   minitest (~> 5.14)
   minitest-reporters (~> 1.4)

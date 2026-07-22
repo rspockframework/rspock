@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'ast_transform/transformation_helper'
 require 'rspock/ast/node'
 
 module RSpock
@@ -8,7 +9,7 @@ module RSpock
     # Binary statements dispatch to specialized assertions (assert_equal, assert_match, assert_operator).
     # General statements use assert_equal(true/false, expr, source_message) with negation detection.
     class StatementToAssertionTransformation
-      include RSpock::AST::NodeBuilder
+      include ASTTransform::TransformationHelper
 
       BINARY_DISPATCH = {
         :==  => :assert_equal,

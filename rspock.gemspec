@@ -31,7 +31,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "simplecov", "~> 0.22"
 
   # Runtime dependencies
-  spec.add_runtime_dependency "ast_transform", "~> 2.0"
+  spec.add_runtime_dependency "ast_transform", "~> 3.0"
   spec.add_runtime_dependency "minitest", "~> 5.0"
   spec.add_runtime_dependency "mocha", ">= 1.0"
   spec.add_runtime_dependency "parser", ">= 3.0"

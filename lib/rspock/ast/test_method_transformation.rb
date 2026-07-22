@@ -5,7 +5,6 @@ require 'rspock/ast/statement_to_assertion_transformation'
 require 'rspock/ast/header_nodes_transformation'
 require 'rspock/ast/interaction_to_mocha_mock_transformation'
 require 'rspock/ast/interaction_to_block_identity_assertion_transformation'
-require 'rspock/ast/method_call_to_lvar_transformation'
 require 'rspock/ast/test_method_def_transformation'
 require 'rspock/ast/parser/test_method_parser'
 
@@ -26,148 +25,136 @@ module RSpock
       private
 
       def transform(rspock_ast)
-        hoisted_setups = []
-
         method_call = rspock_ast.def_node.method_call
         method_args = rspock_ast.def_node.args
         where = rspock_ast.where_node
 
-        transformed_blocks = rspock_ast.body_node.children.map do |block_node|
-          case block_node.type
-          when :rspock_then
-            transform_then_block(block_node, hoisted_setups)
-          when :rspock_expect
-            transform_expect_block(block_node)
-          else
-            block_node
-          end
-        end
-
-        transformed_body = rspock_ast.body_node.updated(nil, transformed_blocks)
-        build_ruby_ast(method_call, method_args, transformed_body, where, hoisted_setups)
+        body = build_test_body(rspock_ast.body_node)
+        build_ruby_ast(method_call, method_args, body, where)
       end
 
-      def transform_then_block(then_node, hoisted_setups)
-        interaction_setups = []
-        then_children = []
-
-        then_node.children.each_with_index do |child, idx|
-          if child.type == :rspock_interaction
-            setup = InteractionToMochaMockTransformation.new(idx).run(child)
-            assertion = InteractionToBlockIdentityAssertionTransformation.new(idx).run(child)
-
-            interaction_setups << setup
-            then_children << assertion unless assertion.equal?(child)
-          else
-            then_children << transform_statement_or_passthrough(child)
-          end
-        end
-
-        unless interaction_setups.empty?
-          interaction_setups.each do |node|
-            if node.type == :begin
-              hoisted_setups.concat(node.children)
-            else
-              hoisted_setups << node
-            end
-          end
-        end
-
-        then_node.updated(nil, then_children)
-      end
-
-      def transform_expect_block(expect_node)
-        new_children = expect_node.children.map { |child| transform_statement_or_passthrough(child) }
-        expect_node.updated(nil, new_children)
-      end
-
-      def transform_statement_or_passthrough(child)
-        case child.type
-        when :rspock_binary_statement, :rspock_statement
-          @statement_transformation.run(child)
-        else
-          child
-        end
-      end
-
-      # --- Build final Ruby AST ---
-
-      def build_ruby_ast(method_call, method_args, body_node, where, hoisted_setups)
-        if where
-          test_def = s(:block,
-            TestMethodDefTransformation.new.run(method_call),
-            method_args,
-            build_test_body(body_node, hoisted_setups)
-          )
-          test_def = HeaderNodesTransformation.new(where.header).run(test_def)
-
-          s(:block,
-            build_where_iterator(where.data_rows),
-            build_where_args(where.header),
-            test_def
-          )
-        else
-          s(:block,
-            method_call,
-            method_args,
-            build_test_body(body_node, hoisted_setups)
-          )
-        end
-      end
-
-      def build_test_body(body_node, hoisted_setups)
-        body_children = []
+      # --- Test body assembly ---
+      #
+      # Statements are assembled in SOURCE order so line-aligned emission keeps
+      # each one on its own line. Execution-order requirements that source
+      # order cannot express (interaction setups in Then must run before the
+      # When body they observe) are carried by ast-transform's deferral
+      # facility (run_after / defer) instead of by textual hoisting.
+      def build_test_body(body_node)
         blocks = body_node.children
+        sections = blocks.map { |block_node| transform_block(block_node) }
 
-        blocks.each_with_index do |block_node, i|
-          case block_node.type
-          when :rspock_given
-            body_children.concat(block_node.children)
-          when :rspock_when
-            body_children.concat(hoisted_setups)
-            raises_node = find_raises_in_next_then(blocks, i)
+        when_statements = statements_of_type(blocks, sections, :rspock_when)
+        cleanup_statements = statements_of_type(blocks, sections, :rspock_cleanup)
+        interaction_setups = sections.flat_map(&:interaction_setups)
+        raises_node = blocks.filter_map { |block_node| find_raises(block_node) }.first
 
-            if raises_node
-              body_children << build_assert_raises(block_node, raises_node)
-            else
-              body_children.concat(block_node.children)
-            end
-          when :rspock_then, :rspock_expect
-            block_node.children.each do |child|
-              body_children << child unless child.type == :rspock_raises
-            end
-          when :rspock_cleanup
-            # handled below as ensure
-          end
+        source_order = blocks.zip(sections).flat_map do |block_node, section|
+          next [] if block_node.type == :rspock_cleanup
+
+          section.statements.reject { |statement| statement.type == :rspock_raises }
         end
+
+        body_children = order_execution(source_order, when_statements, interaction_setups, raises_node)
 
         ast = s(:begin, *body_children)
+        cleanup_statements.empty? ? ast : s(:kwbegin, s(:ensure, ast, s(:begin, *cleanup_statements)))
+      end
 
-        cleanup = body_node.children.find { |n| n.type == :rspock_cleanup }
-        if cleanup && !cleanup.children.empty?
-          ensure_node = s(:begin, *cleanup.children)
-          ast = s(:kwbegin, s(:ensure, ast, ensure_node))
+      Section = Data.define(:statements, :interaction_setups)
+
+      def transform_block(block_node)
+        case block_node.type
+        when :rspock_then, :rspock_expect
+          transform_assertion_block(block_node)
+        else
+          Section.new(statements: block_node.children, interaction_setups: [])
+        end
+      end
+
+      # Then/Expect children become plain Ruby in place: interactions lower to
+      # Mocha setups anchored at the interaction's own source line (plus an
+      # identity assertion for &block forwarding), statements become assertions
+      # at their own lines.
+      #
+      # Within the section, ALL setups come before all assertions: the deferred
+      # When body executes right after the last setup, and every assertion
+      # (identity or otherwise) observes the When body's effects, so none may
+      # precede that point. Setups keep source order and their anchors, so
+      # alignment holds; assertions after them are either synthetic (identity
+      # assertions, loc-less, pack anywhere) or textually below the
+      # interactions in the common case.
+      def transform_assertion_block(block_node)
+        setups = []
+        assertions = []
+        interaction_index = 0
+
+        block_node.children.each do |child|
+          case child.type
+          when :rspock_interaction
+            interaction_setups, identity_assertions = lower_interaction(child, interaction_index)
+            interaction_index += 1
+            setups.concat(interaction_setups)
+            assertions.concat(identity_assertions)
+          when :rspock_binary_statement, :rspock_statement
+            assertions << anchored_at(child, @statement_transformation.run(child))
+          else
+            assertions << child
+          end
         end
 
-        MethodCallToLVarTransformation.new(:_test_index_, :_line_number_).run(ast)
+        Section.new(statements: setups + assertions, interaction_setups: setups)
       end
 
-      # --- Raises condition helpers ---
+      # @return [Array(Array, Array)] Mocha setup statements, identity assertions
+      def lower_interaction(interaction, index)
+        setup = InteractionToMochaMockTransformation.new(index).run(interaction)
+        assertion = InteractionToBlockIdentityAssertionTransformation.new(index).run(interaction)
 
-      def find_raises_in_next_then(blocks, current_index)
-        next_block = blocks[current_index + 1]
-        return nil unless next_block&.type == :rspock_then
+        setups = setup.type == :begin ? setup.children.dup : [setup]
+        setups[0] = anchored_at(interaction, setups[0])
 
-        next_block.children.find { |c| c.type == :rspock_raises }
+        [setups, assertion.equal?(interaction) ? [] : [assertion]]
       end
 
-      def build_assert_raises(when_node, raises_node)
-        when_body = when_node.children.length == 1 ? when_node.children[0] : s(:begin, *when_node.children)
+      # Reorders execution (not text) where required:
+      # - interactions without raises: defer the When body until after the last
+      #   interaction setup (run_after — the paved road).
+      # - raises without interactions: the When body inlines directly into
+      #   assert_raises; no deferral needed.
+      # - raises with interactions: the When body is deferred at its source
+      #   position and its execution composes into the assert_raises block after
+      #   the last setup (low-level defer).
+      def order_execution(source_order, when_statements, interaction_setups, raises_node)
+        if raises_node
+          build_raises_body(source_order, when_statements, interaction_setups, raises_node)
+        elsif interaction_setups.any? && when_statements.any?
+          run_after(source_order, run: when_statements, after: interaction_setups.last)
+        else
+          source_order
+        end
+      end
 
+      def build_raises_body(source_order, when_statements, interaction_setups, raises_node)
+        if interaction_setups.any?
+          deferral = defer(*when_statements)
+          assertion = build_assert_raises(raises_node, deferral.execution)
+
+          reordered = replace_run(source_order, when_statements, [deferral.placement])
+          insert_after(reordered, interaction_setups.last, assertion)
+        else
+          when_body = when_statements.length == 1 ? when_statements[0] : s(:begin, *when_statements)
+          assertion = build_assert_raises(raises_node, when_body)
+
+          replace_run(source_order, when_statements, [assertion])
+        end
+      end
+
+      def build_assert_raises(raises_node, body)
         assert_raises_call = s(:block,
           s(:send, nil, :assert_raises, raises_node.exception_class),
           s(:args),
-          when_body
+          body
         )
 
         if raises_node.capture_name
@@ -177,7 +164,78 @@ module RSpock
         end
       end
 
+      def find_raises(block_node)
+        return nil unless block_node.type == :rspock_then
+
+        block_node.children.find { |child| child.type == :rspock_raises }
+      end
+
+      def statements_of_type(blocks, sections, type)
+        blocks.zip(sections)
+          .select { |block_node, _section| block_node.type == type }
+          .flat_map { |_block_node, section| section.statements }
+      end
+
+      # --- Identity-based sequence edits (non-deferral counterparts of run_after) ---
+
+      def replace_run(statements, run, replacement)
+        start = statements.index { |statement| statement.equal?(run.first) }
+        raise ArgumentError, "run is not part of statements" unless start
+
+        result = statements.dup
+        result[start, run.length] = replacement
+        result
+      end
+
+      def insert_after(statements, anchor, insertion)
+        index = statements.index { |statement| statement.equal?(anchor) }
+        raise ArgumentError, "anchor is not part of statements" unless index
+
+        result = statements.dup
+        result.insert(index + 1, insertion)
+        result
+      end
+
+      # Re-anchors +node+ at +anchor+'s source location so emission places it
+      # on the anchor's line. No-op for anchors without locations.
+      def anchored_at(anchor, node)
+        return node unless anchor.loc&.expression
+
+        s_at(anchor, node.type, *node.children)
+      end
+
+      # --- Build final Ruby AST ---
+
+      def build_ruby_ast(method_call, method_args, body_node, where)
+        if where
+          test_def = anchored_at(method_call, s(:block,
+            TestMethodDefTransformation.new.run(method_call),
+            method_args,
+            body_node
+          ))
+          test_def = HeaderNodesTransformation.new(where.header).run(test_def)
+
+          s(:block,
+            build_where_iterator(where.data_rows),
+            build_where_args(where.header),
+            test_def
+          )
+        else
+          anchored_at(method_call, s(:block,
+            method_call,
+            method_args,
+            body_node
+          ))
+        end
+      end
+
       # --- Where block helpers ---
+      #
+      # Each data row carries its source line as a trailing element, surfaced
+      # in the generated test NAME only (uniqueness for identical rows + the -n
+      # selector target) through internal block parameters. There is no
+      # user-facing runtime variable: isolate a row by running its generated
+      # test by name, then break normally.
 
       def build_where_iterator(data_rows)
         s(:send,
@@ -192,15 +250,16 @@ module RSpock
       def build_where_data_row(row)
         children = row.dup
         children << s(:int, row.first&.loc&.expression&.line)
-        s(:array, *children)
+        anchor = row.first
+        anchor&.loc&.expression ? s_at(anchor, :array, *children) : s(:array, *children)
       end
 
       def build_where_args(header)
         injected_args = header.map { |column| s(:arg, column) }
-        injected_args << s(:arg, :_line_number_)
+        injected_args << s(:arg, TestMethodDefTransformation::ROW_LINE_ARG)
         s(:args,
           s(:mlhs, *injected_args),
-          s(:arg, :_test_index_),
+          s(:arg, TestMethodDefTransformation::ROW_INDEX_ARG),
         )
       end
     end
