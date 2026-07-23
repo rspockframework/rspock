@@ -129,6 +129,54 @@ module RSpock
           "the interaction's source line\n#{output}"
     end
 
+    # When the Then block declares interactions, the When body is deferred
+    # past the Mocha setups — historically that hid `result` (a local first
+    # assigned inside the deferral closure is closure-local), so reading it
+    # in Then raised NameError. The lowering now pre-declares deferred
+    # assignments at method scope; the expectation must fail as a plain
+    # assertion failure that can SEE the value.
+    WHEN_RESULT_FIXTURE = <<~RUBY
+      transform!(RSpock::AST::Transformation)
+      class WhenResultFixtureTest < Minitest::Test
+        class Subject
+          def initialize(dep)
+            @dep = dep
+          end
+
+          def call
+            @dep.ping(1)
+            42
+          end
+        end
+
+        test "When result stays readable when interactions defer the When body" do
+          Given "a mocked collaborator"
+          dep = mock
+          subject = Subject.new(dep)
+
+          When "exercising the subject"
+          result = subject.call
+
+          Then "the interaction and an expectation on the result that cannot hold"
+          1 * dep.ping(1)
+          result == 999
+        end
+      end
+    RUBY
+
+    test "a When-assigned local is readable in Then despite interaction deferral, raw" do
+      output = run_fixture("when_result_fixture_test.rb", WHEN_RESULT_FIXTURE)
+      assertion_line = line_number_of(WHEN_RESULT_FIXTURE, "result == 999")
+
+      # A failure (not an error): a NameError on `result` would be an error.
+      assert_includes output, "1 failures, 0 errors",
+        "the result expectation should fail as an assertion, proving `result` was readable\n#{output}"
+      assert_includes output, "42",
+        "the failure message should show the deferred When's actual result\n#{output}"
+      assert_includes output, "test/when_result_fixture_test.rb:#{assertion_line}",
+        "the failing expectation should cite its source line\n#{output}"
+    end
+
     CLEANUP_FIXTURE = <<~RUBY
       transform!(RSpock::AST::Transformation)
       class CleanupFixtureTest < Minitest::Test
@@ -151,6 +199,54 @@ module RSpock
 
       assert_includes output, "test/cleanup_fixture_test.rb:#{cleanup_raise_line}",
         "the cleanup raise should cite its source line\n#{output}"
+    end
+
+    # The compound of the two hazards above: Cleanup runs inside ensure, so it
+    # observes the When local BOTH after a failing Then AND with the When body
+    # deferred behind interaction setups. Historically this raised NameError
+    # inside ensure, masking the real failure.
+    CLEANUP_WHEN_LOCAL_FIXTURE = <<~RUBY
+      transform!(RSpock::AST::Transformation)
+      class CleanupWhenLocalFixtureTest < Minitest::Test
+        class Subject
+          def initialize(dep)
+            @dep = dep
+          end
+
+          def call
+            @dep.ping(1)
+            :open
+          end
+        end
+
+        test "Cleanup sees the When-assigned local" do
+          Given "a mocked collaborator"
+          dep = mock
+          subject = Subject.new(dep)
+
+          When "exercising the subject"
+          handle = subject.call
+
+          Then "an interaction and an expectation that cannot hold"
+          1 * dep.ping(1)
+          handle == :closed
+
+          Cleanup "reporting what the ensure block can see"
+          puts "cleanup saw \#{handle.inspect}"
+        end
+      end
+    RUBY
+
+    test "Cleanup reads a When-assigned local after a failing Then, raw" do
+      output = run_fixture("cleanup_when_local_fixture_test.rb", CLEANUP_WHEN_LOCAL_FIXTURE)
+      assertion_line = line_number_of(CLEANUP_WHEN_LOCAL_FIXTURE, "handle == :closed")
+
+      assert_includes output, "cleanup saw :open",
+        "the ensure-run Cleanup should see the When-assigned local\n#{output}"
+      assert_includes output, "1 failures, 0 errors",
+        "the Then failure should surface as an assertion failure, not be masked by a NameError in ensure\n#{output}"
+      assert_includes output, "test/cleanup_when_local_fixture_test.rb:#{assertion_line}",
+        "the failing expectation should cite its source line\n#{output}"
     end
 
     private

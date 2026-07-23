@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.0.0] - Unreleased
 
+### Fixed
+
+- Locals assigned in a When block are now readable in Then and Cleanup when the test declares interactions. The deferred When body lowers to a non-lambda proc with method-scope pre-declarations, so `result = subject.call` in When no longer raises `NameError` in a Then expectation or in an ensure-run Cleanup — a long-standing bug of the hoisted-interaction era.
+
 ### Changed
 
 - Adopted ast_transform 3.0 line-aligned emission: transformed code is emitted with every statement on its original source line, so backtraces, failure messages, breakpoints, and debugger display are source-true natively — with zero runtime filtering.
-- Interactions in Then blocks are emitted at their own source lines; the When body they must follow is deferred via ast_transform's deferral facility instead of textually hoisting the interaction setups.
+- Interactions in Then blocks are emitted at their own source lines; the When body they must follow is deferred via ast_transform's deferral facility instead of textually hoisting the interaction setups. A deferred `return` still returns from the test method (proc semantics).
 - Where-driven test names now embed the row line via internal block parameters (`__rspock_row_index__` / `__rspock_row_line__`); the appended `<index> line <line>` name suffix is unchanged.
 - RSpock node classes now register on `ASTTransform::Node` (the promoted registry) instead of RSpock's hand-rolled `Node::REGISTRY`/`NodeBuilder`.
 - **Breaking:** dropped Ruby 3.2 support (EOL since March 2026); `required_ruby_version` is now `>= 3.3`.
@@ -26,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Subprocess acceptance tests pinning line-aligned behavior end to end: Then assertion failures, failing Where rows, interaction setups, and Cleanup failures all cite their own source lines with zero filter machinery.
+- Subprocess acceptance tests pinning line-aligned behavior end to end: Then assertion failures, failing Where rows, interaction setups, and Cleanup failures all cite their own source lines with zero filter machinery; When-assigned locals stay readable in Then and in ensure-run Cleanup under interaction deferral.
 - The rspock agent skill (`skills/rspock/SKILL.md`) ships in the gem: the RSpock dialect's mechanics, pitfalls, and debugging triage for coding agents.
 
 ## [2.5.0] - 2026-02-28

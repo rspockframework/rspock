@@ -352,7 +352,7 @@ module RSpock
           test("interactions") do
 
           dep = mock
-          foo = Foo.new(dep); __ast_deferred_1__ = ->() do
+          foo = Foo.new(dep); __ast_deferred_1__ = proc do
 
 
           foo.foo; end
@@ -360,6 +360,42 @@ module RSpock
 
           dep.expects(:bar).times(0)
           dep.expects(:foo).times(1); __ast_deferred_1__.call; end
+        HEREDOC
+
+        assert_equal expected, transform(source)
+      end
+
+      test "test with interactions and a When result read by Then" do
+        source = <<~HEREDOC
+          test "when result" do
+            Given
+            dep = mock
+            foo = Foo.new(dep)
+
+            When
+            result = foo.foo
+
+            Then
+            1 * dep.foo
+            result == 42
+          end
+        HEREDOC
+
+        # `result` is assigned inside the deferred proc; the lowering
+        # pre-declares it (`result = result`) at method scope so the
+        # assertion after the execution point can read it.
+        expected = <<~HEREDOC
+          test("when result") do
+
+          dep = mock
+          foo = Foo.new(dep); result = result; __ast_deferred_1__ = proc do
+
+
+          result = foo.foo; end
+
+
+          dep.expects(:foo).times(1); __ast_deferred_1__.call
+          assert_equal(42, result); end
         HEREDOC
 
         assert_equal expected, transform(source)
@@ -384,7 +420,7 @@ module RSpock
           test("block forwarding") do
 
           my_proc = Proc.new do; end
-          dep = mock; __ast_deferred_1__ = ->() do
+          dep = mock; __ast_deferred_1__ = proc do
 
 
           dep.call_method("arg", &my_proc); end
@@ -419,7 +455,7 @@ module RSpock
 
           cb1 = Proc.new do; end
           cb2 = Proc.new do; end
-          dep = mock; __ast_deferred_1__ = ->() do
+          dep = mock; __ast_deferred_1__ = proc do
 
 
           dep.method1(&cb1)
@@ -452,7 +488,7 @@ module RSpock
           test("block with return") do
 
           my_proc = Proc.new do; end
-          dep = mock; __ast_deferred_1__ = ->() do
+          dep = mock; __ast_deferred_1__ = proc do
 
 
           dep.call_method(&my_proc); end
@@ -485,7 +521,7 @@ module RSpock
           test("mixed interactions") do
 
           my_proc = Proc.new do; end
-          dep = mock; __ast_deferred_1__ = ->() do
+          dep = mock; __ast_deferred_1__ = proc do
 
 
           dep.method1("arg")
