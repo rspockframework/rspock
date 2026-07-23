@@ -1,5 +1,4 @@
 name: rspock
-ruby: "4.0.6"
 commands:
   up:
     desc: Install gems
