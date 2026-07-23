@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Interactions in Then blocks are emitted at their own source lines; the When body they must follow is deferred via ast_transform's deferral facility instead of textually hoisting the interaction setups.
 - Where-driven test names now embed the row line via internal block parameters (`__rspock_row_index__` / `__rspock_row_line__`); the appended `<index> line <line>` name suffix is unchanged.
 - RSpock node classes now register on `ASTTransform::Node` (the promoted registry) instead of RSpock's hand-rolled `Node::REGISTRY`/`NodeBuilder`.
-- **Breaking:** requires Ruby >= 3.3 (3.2 is EOL since March 2026).
+- **Breaking:** dropped Ruby 3.2 support (EOL since March 2026); `required_ruby_version` is now `>= 3.3`.
 
 ### Removed
 
