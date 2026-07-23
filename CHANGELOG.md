@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Interactions in Then blocks are emitted at their own source lines; the When body they must follow is deferred via ast_transform's deferral facility instead of textually hoisting the interaction setups.
 - Where-driven test names now embed the row line via internal block parameters (`__rspock_row_index__` / `__rspock_row_line__`); the appended `<index> line <line>` name suffix is unchanged.
 - RSpock node classes now register on `ASTTransform::Node` (the promoted registry) instead of RSpock's hand-rolled `Node::REGISTRY`/`NodeBuilder`.
+- **Breaking:** requires Ruby >= 3.3 (3.2 is EOL since March 2026).
 
 ### Removed
 
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RSpock::BacktraceFilter`, `RSpock::Minitest::BacktraceFilter`, and the Minitest plugin (`minitest/rspock_plugin`) — line-aligned emission makes raw VM line numbers the source line numbers, so the whole mapping apparatus is gone.
 - The rescue wrapper previously injected around transformed class bodies for backtrace mapping.
 - `MethodCallToLVarTransformation` (only existed to service `_test_index_`/`_line_number_`).
+- The direct `parser` and `unparser` runtime dependencies: rspock uses both only through ast_transform, which owns their version floors.
 
 ### Added
 
