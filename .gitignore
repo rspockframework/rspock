@@ -51,3 +51,6 @@ build-iPhoneSimulator/
 
 # RubyMine
 /.idea
+
+# Generated per-machine by `dev up` (d3mlabs dev tool); never committed
+/.shadowenv.d/

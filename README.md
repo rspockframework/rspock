@@ -637,6 +637,8 @@ end
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `bundle exec rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
+If you use the [d3mlabs dev tool](https://github.com/d3mlabs/dev), `dev up` provisions the pinned Ruby (see `.ruby-version`) with a per-project shadowenv, and `dev test` runs the suite — plain Bundler as above works just as well.
+
 To install this gem onto your local machine, run `bundle exec rake install`.
 
 ## Releasing a New Version
