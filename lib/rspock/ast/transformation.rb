@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'ast_transform/abstract_transformation'
 require 'rspock/ast/parser/given_block'
 require 'rspock/ast/parser/when_block'
@@ -30,8 +31,8 @@ module RSpock
       end
 
       EXTEND_RSPOCK_DECLARATIVE = s(:send, nil, :extend,
-                                     s(:const,
-                                       s(:const, nil, :RSpock), :Declarative))
+        s(:const,
+          s(:const, nil, :RSpock), :Declarative))
 
       def on_class(node)
         if node.children[2]&.type == :begin
@@ -81,7 +82,8 @@ module RSpock
       end
 
       def on_block(node)
-        if node.children[0]&.children[1] != :test
+        method_call = node.children[0]
+        if method_call.nil? || method_call.children[1] != :test
           return node.updated(nil, process_all(node))
         end
 

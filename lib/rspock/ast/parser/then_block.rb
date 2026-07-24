@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'rspock/ast/parser/block'
 require 'rspock/ast/parser/interaction_parser'
 require 'rspock/ast/parser/statement_parser'

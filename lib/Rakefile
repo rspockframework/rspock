@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # lib/Rakefile
 
 path = File.expand_path(__dir__)

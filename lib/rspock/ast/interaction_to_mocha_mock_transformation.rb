@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'ast_transform/abstract_transformation'
 require 'rspock/ast/node'
 
@@ -97,7 +98,7 @@ module RSpock
             :capture,
             receiver,
             s(:sym, message)
-          )
+           )
         )
 
         s(:begin, expects_node, capture_call)

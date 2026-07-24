@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'test_helper'
 require 'rspock/ast/test_method_dstr_transformation'
 
@@ -14,8 +15,8 @@ module RSpock
 
       test "#run does nothing if node is not a send test method call" do
         ast = s(:begin,
-                s(:send, nil, :test,
-                  s(:str, "Test Name")))
+          s(:send, nil, :test,
+            s(:str, "Test Name")))
 
         actual = @transformation.run(ast)
 
@@ -24,7 +25,7 @@ module RSpock
 
       test "#run returns same ast if there is no dstr" do
         ast = s(:send, nil, :test,
-                s(:str, "Test Name"))
+          s(:str, "Test Name"))
 
         actual = @transformation.run(ast)
 
@@ -33,39 +34,39 @@ module RSpock
 
       test "#run injects __rspock_row_index__ and __rspock_row_line__ lvar into dstr" do
         ast = s(:send, nil, :test,
-                s(:dstr,
-                  s(:begin, s(:lvar, :a)),
-                  s(:str, "Test Name")))
+          s(:dstr,
+            s(:begin, s(:lvar, :a)),
+            s(:str, "Test Name")))
 
         actual = @transformation.run(ast)
 
         expected = s(:send, nil, :test,
-                     s(:dstr,
-                       s(:begin, s(:lvar, :a)),
-                       s(:str, "Test Name "),
-                       s(:begin, s(:lvar, :__rspock_row_index__)),
-                       s(:str, " line "),
-                       s(:begin, s(:lvar, :__rspock_row_line__))))
+          s(:dstr,
+            s(:begin, s(:lvar, :a)),
+            s(:str, "Test Name "),
+            s(:begin, s(:lvar, :__rspock_row_index__)),
+            s(:str, " line "),
+            s(:begin, s(:lvar, :__rspock_row_line__))))
 
         assert_equal expected, actual
       end
 
       test "#run appends space when dstr does not end with a str node" do
         ast = s(:send, nil, :test,
-                s(:dstr,
-                  s(:str, "Test "),
-                  s(:begin, s(:lvar, :a))))
+          s(:dstr,
+            s(:str, "Test "),
+            s(:begin, s(:lvar, :a))))
 
         actual = @transformation.run(ast)
 
         expected = s(:send, nil, :test,
-                     s(:dstr,
-                       s(:str, "Test "),
-                       s(:begin, s(:lvar, :a)),
-                       s(:str, " "),
-                       s(:begin, s(:lvar, :__rspock_row_index__)),
-                       s(:str, " line "),
-                       s(:begin, s(:lvar, :__rspock_row_line__))))
+          s(:dstr,
+            s(:str, "Test "),
+            s(:begin, s(:lvar, :a)),
+            s(:str, " "),
+            s(:begin, s(:lvar, :__rspock_row_index__)),
+            s(:str, " line "),
+            s(:begin, s(:lvar, :__rspock_row_line__))))
 
         assert_equal expected, actual
       end

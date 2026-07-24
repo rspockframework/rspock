@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'test_helper'
 require 'rspock/ast/parser/then_block'
 

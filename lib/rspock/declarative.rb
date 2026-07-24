@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # TODO: Give Credits to Rails, borrowed from ActiveSupport::Testing::Declarative
 module RSpock
   module Declarative

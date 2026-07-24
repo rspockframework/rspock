@@ -1,0 +1,12 @@
+inherit_gem:
+  rubocop-shopify: rubocop.yml
+
+AllCops:
+  SuggestExtensions: false
+
+# example_rspock_test.rb is written in the RSpock dialect: bare comparisons in
+# Then/Expect blocks and block-name constants (Given/When/Then/Where) are
+# rewritten into assertions by the AST transform, not evaluated for value.
+Lint/Void:
+  Exclude:
+    - test/example_rspock_test.rb

@@ -63,7 +63,7 @@ class BlockCaptureTest < Minitest::Test
     m.expects(:frame).with("Build").returns("mock_result")
     getter = RSpock::Helpers::BlockCapture.capture(m, :frame)
 
-    my_block = Proc.new { }
+    my_block = Proc.new {}
     result = m.frame("Build", &my_block)
 
     assert_same my_block, getter.call
@@ -98,7 +98,7 @@ class BlockCaptureTest < Minitest::Test
     obj.expects(:frame).with("Build").returns("stubbed").once
     getter = RSpock::Helpers::BlockCapture.capture(obj, :frame)
 
-    my_block = Proc.new { }
+    my_block = Proc.new {}
     result = obj.frame("Build", &my_block)
 
     assert_same my_block, getter.call
@@ -110,7 +110,7 @@ class BlockCaptureTest < Minitest::Test
     obj.stubs(:frame).returns("stubbed")
     getter = RSpock::Helpers::BlockCapture.capture(obj, :frame)
 
-    my_block = Proc.new { }
+    my_block = Proc.new {}
     result = obj.frame("Build", &my_block)
 
     assert_same my_block, getter.call
