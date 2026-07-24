@@ -401,6 +401,41 @@ module RSpock
         assert_equal expected, transform(source)
       end
 
+      test "test with interactions and raises" do
+        source = <<~HEREDOC
+          test "raises with interactions" do
+            Given
+            dep = mock
+            foo = Foo.new(dep)
+
+            When
+            foo.explode
+
+            Then
+            1 * dep.foo
+            raises ExplosionError
+          end
+        HEREDOC
+
+        # The thunked When body executes inside assert_raises, which is
+        # inserted after the last Mocha setup; the raises statement itself
+        # contributes no statement of its own.
+        expected = <<~HEREDOC
+          test("raises with interactions") do
+
+            dep = mock
+            foo = Foo.new(dep); __ast_thunk_1__ = proc do
+
+
+            foo.explode; end
+
+
+            dep.expects(:foo).times(1); assert_raises(ExplosionError) do; __ast_thunk_1__.call; end; end
+        HEREDOC
+
+        assert_equal expected, transform(source)
+      end
+
       test "test with interaction and &block forwarding" do
         source = <<~HEREDOC
           test "block forwarding" do
