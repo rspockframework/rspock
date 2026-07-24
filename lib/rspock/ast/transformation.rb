@@ -77,8 +77,7 @@ module RSpock
 
       def process_rspock(node)
         processed = process_all(node).compact
-        children = [source_map_rescue_wrapper(s(:begin, *[EXTEND_RSPOCK_DECLARATIVE, *processed]))]
-        node.updated(nil, children)
+        node.updated(nil, [EXTEND_RSPOCK_DECLARATIVE, *processed])
       end
 
       def on_block(node)
@@ -90,31 +89,6 @@ module RSpock
           @block_registry,
           strict: @strict
         ).run(node)
-      end
-
-      def source_map_rescue_wrapper(node)
-        s(:kwbegin,
-          s(:rescue,
-            node,
-            s(:resbody,
-              s(:array,
-                s(:const, nil, :StandardError)
-              ),
-              s(:lvasgn, :e),
-              s(:begin,
-                s(:send,
-                  s(:send,
-                    s(:const,
-                      s(:const,
-                        s(:cbase), :RSpock), :BacktraceFilter), :new), :filter_exception,
-                  s(:lvar, :e)
-                ),
-                s(:send, nil, :raise)
-              )
-            ),
-            nil
-          )
-        )
       end
     end
   end

@@ -161,6 +161,19 @@ class ExampleRSpockTest < Minitest::Test
     "hello" | ArgumentError
   end
 
+  test "raises with interactions catches the exception from the deferred When body" do
+    Given
+    dep = mock
+
+    When
+    dep.foo(1)
+    raise IndexError, "boom"
+
+    Then
+    1 * dep.foo(1)
+    raises IndexError
+  end
+
   test "interactions" do
     Given
     dep = mock

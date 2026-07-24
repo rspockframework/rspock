@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'ast_transform/transformation_helper'
 require 'rspock/ast/node'
 
 module RSpock
@@ -7,7 +8,7 @@ module RSpock
       class BlockError < StandardError; end
 
       class Block
-        include RSpock::AST::NodeBuilder
+        include ASTTransform::TransformationHelper
 
         # Constructs a new Block.
         #

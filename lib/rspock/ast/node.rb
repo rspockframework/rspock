@@ -1,22 +1,13 @@
 # frozen_string_literal: true
-require 'ast_transform/transformation_helper'
+require 'ast_transform/node'
 
 module RSpock
   module AST
-    class Node < ::Parser::AST::Node
-      REGISTRY = {}
-
-      def self.register(type)
-        REGISTRY[type] = self
-      end
-
-      def self.build(type, *children)
-        klass = REGISTRY[type] || self
-        klass.new(type, children)
-      end
-    end
-
-    class TestNode < Node
+    # RSpock's intermediate representation: custom node types registered on ASTTransform::Node, so
+    # +s(:rspock_*, ...)+ constructs these classes with their domain accessors. They exist only between the parser
+    # and TestMethodTransformation — the transformation lowers every one of them to plain Ruby nodes before
+    # emission.
+    class TestNode < ASTTransform::Node
       register :rspock_test
 
       def def_node   = children[0]
@@ -24,38 +15,38 @@ module RSpock
       def where_node = children[2]
     end
 
-    class BodyNode < Node
+    class BodyNode < ASTTransform::Node
       register :rspock_body
     end
 
-    class DefNode < Node
+    class DefNode < ASTTransform::Node
       register :rspock_def
 
       def method_call = children[0]
       def args        = children[1]
     end
 
-    class GivenNode < Node
+    class GivenNode < ASTTransform::Node
       register :rspock_given
     end
 
-    class WhenNode < Node
+    class WhenNode < ASTTransform::Node
       register :rspock_when
     end
 
-    class ThenNode < Node
+    class ThenNode < ASTTransform::Node
       register :rspock_then
     end
 
-    class ExpectNode < Node
+    class ExpectNode < ASTTransform::Node
       register :rspock_expect
     end
 
-    class CleanupNode < Node
+    class CleanupNode < ASTTransform::Node
       register :rspock_cleanup
     end
 
-    class WhereNode < Node
+    class WhereNode < ASTTransform::Node
       register :rspock_where
 
       def header
@@ -70,7 +61,7 @@ module RSpock
       end
     end
 
-    class OutcomeNode < Node
+    class OutcomeNode < ASTTransform::Node
     end
 
     class StubReturnsNode < OutcomeNode
@@ -81,7 +72,7 @@ module RSpock
       register :rspock_stub_raises
     end
 
-    class RaisesNode < Node
+    class RaisesNode < ASTTransform::Node
       register :rspock_raises
 
       def exception_class = children[0]
@@ -89,7 +80,7 @@ module RSpock
       def capture_name    = capture_var&.children&.[](0)
     end
 
-    class InteractionNode < Node
+    class InteractionNode < ASTTransform::Node
       register :rspock_interaction
 
       def cardinality  = children[0]
@@ -101,7 +92,7 @@ module RSpock
       def block_pass   = children[5]
     end
 
-    class BinaryStatementNode < Node
+    class BinaryStatementNode < ASTTransform::Node
       register :rspock_binary_statement
 
       def lhs      = children[0]
@@ -109,23 +100,11 @@ module RSpock
       def rhs      = children[2]
     end
 
-    class StatementNode < Node
+    class StatementNode < ASTTransform::Node
       register :rspock_statement
 
       def expression = children[0]
       def source     = children[1]
-    end
-
-    module NodeBuilder
-      include ASTTransform::TransformationHelper
-
-      def s(type, *children)
-        if type.to_s.start_with?('rspock_')
-          Node.build(type, *children)
-        else
-          super
-        end
-      end
     end
   end
 end

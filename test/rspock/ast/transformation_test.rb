@@ -52,12 +52,12 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          test("Adding 1 and 2 results in 3") {
+          test("Adding 1 and 2 results in 3") do
             assert_equal(3, 1 + 2)
-          }
+          end
         HEREDOC
 
-        assert_equal strip_end_line(expected), transform(source)
+        assert_equal expected, transform(source)
       end
 
       test "first node cannot be a non-starting block" do
@@ -72,6 +72,21 @@ module RSpock
         end
 
         assert_equal "Test method @ tmp:1:1 must start with one of: Given, When, Expect", error.message
+      end
+
+      test "test cannot end with a block that requires a successor" do
+        source = <<~HEREDOC
+          test "dangling When" do
+            When "stimulus with no Then"
+            1 + 1
+          end
+        HEREDOC
+
+        error = assert_raises RSpock::AST::Parser::BlockError do
+          transform(source)
+        end
+
+        assert_equal "Block When @ tmp:2:3 must be followed by one of these Blocks: [:Then]", error.message
       end
 
       test "expect block can be followed by nothing" do
@@ -183,17 +198,10 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          Potato = Class.new {
-            (begin
-              (extend(RSpock::Declarative))
-            rescue StandardError => e
-              ::RSpock::BacktraceFilter.new.filter_exception(e)
-              raise
-            end)
-          }
+          Potato = Class.new do; extend(RSpock::Declarative); end
         HEREDOC
 
-        assert_equal strip_end_line(expected), transform(source)
+        assert_equal expected, transform(source)
       end
 
       test "#run adds extend RSpock::Declarative when using traditional class definition" do
@@ -204,13 +212,8 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          class Potato
-            (begin
-              (extend(RSpock::Declarative))
-            rescue StandardError => e
-              ::RSpock::BacktraceFilter.new.filter_exception(e)
-              raise
-            end)
+          class Potato; extend(RSpock::Declarative)
+
           end
         HEREDOC
 
@@ -257,6 +260,8 @@ module RSpock
         end
       end
 
+      # Line-aligned emission: each statement is on its SOURCE line — the When assignment on line 3 (descriptions
+      # on 2 and 5 vanish into blank lines), the assertion on line 6 where `actual == 3` was written.
       test "test without where block" do
         source = <<~HEREDOC
           test "Adding 1 and 2 results in 3" do
@@ -269,13 +274,15 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          test(\"Adding 1 and 2 results in 3\") {
+          test("Adding 1 and 2 results in 3") do
+
             actual = 1 + 2
-            assert_equal(3, actual)
-          }
+
+
+            assert_equal(3, actual); end
         HEREDOC
 
-        assert_equal strip_end_line(expected), transform(source)
+        assert_equal expected, transform(source)
       end
 
       test "test with where block" do
@@ -295,15 +302,15 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          [[1, 2, 3, 10], [4, 5, 9, 11]].each.with_index { |(a, b, c, _line_number_), _test_index_|
-            test("Adding \#{a} and \#{b} results in \#{c} \#{_test_index_} line \#{_line_number_}") {
-              actual = a + b
-              assert_equal(c, actual)
-            }
-          }
+          [[1, 2, 3, 10], [4, 5, 9, 11]].each.with_index { |(a, b, c, __rspock_row_line__), __rspock_row_index__|; test("Adding \#{a} and \#{b} results in \#{c} \#{__rspock_row_index__} line \#{__rspock_row_line__}") do
+
+            actual = a + b
+
+
+            assert_equal(c, actual); end; }
         HEREDOC
 
-        assert_equal strip_end_line(expected), transform(source)
+        assert_equal expected, transform(source)
       end
 
       test "test with cleanup block" do
@@ -322,18 +329,19 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          test(\"Adding 1 and 2 results in 3\") {
-            begin
-              actual = 1 + 2
-              assert_equal(3, actual)
-            ensure
-              method1
-              method2
-            end
-          }
+          test("Adding 1 and 2 results in 3") do; begin
+
+            actual = 1 + 2
+
+
+            assert_equal(3, actual)
+          ensure
+
+            method1
+            method2; end; end
         HEREDOC
 
-        assert_equal strip_end_line(expected), transform(source)
+        assert_equal expected, transform(source)
       end
 
       test "test with interactions" do
@@ -352,17 +360,92 @@ module RSpock
           end
         HEREDOC
 
+        # The When body is thunked (interactions must execute first) but keeps its source position; each Mocha
+        # setup lands on its interaction's line.
         expected = <<~HEREDOC
-          test(\"interactions\") {
+          test("interactions") do
+
             dep = mock
-            foo = Foo.new(dep)
+            foo = Foo.new(dep); __ast_thunk_1__ = proc do
+
+
+            foo.foo; end
+
+
             dep.expects(:bar).times(0)
-            dep.expects(:foo).times(1)
-            foo.foo
-          }
+            dep.expects(:foo).times(1); __ast_thunk_1__.call; end
         HEREDOC
 
-        assert_equal strip_end_line(expected), transform(source)
+        assert_equal expected, transform(source)
+      end
+
+      test "test with interactions and a When result read by Then" do
+        source = <<~HEREDOC
+          test "when result" do
+            Given
+            dep = mock
+            foo = Foo.new(dep)
+
+            When
+            result = foo.foo
+
+            Then
+            1 * dep.foo
+            result == 42
+          end
+        HEREDOC
+
+        # `result` is assigned inside the thunk's proc; the lowering pre-declares it (`result = result`) at method
+        # scope so the assertion after the execution point can read it.
+        expected = <<~HEREDOC
+          test("when result") do
+
+            dep = mock
+            foo = Foo.new(dep); result = result; __ast_thunk_1__ = proc do
+
+
+            result = foo.foo; end
+
+
+            dep.expects(:foo).times(1); __ast_thunk_1__.call
+            assert_equal(42, result); end
+        HEREDOC
+
+        assert_equal expected, transform(source)
+      end
+
+      test "test with interactions and raises" do
+        source = <<~HEREDOC
+          test "raises with interactions" do
+            Given
+            dep = mock
+            foo = Foo.new(dep)
+
+            When
+            foo.explode
+
+            Then
+            1 * dep.foo
+            raises ExplosionError
+          end
+        HEREDOC
+
+        # The thunked When body executes inside assert_raises, which is inserted after the last Mocha setup;
+        # the raises statement itself contributes no statement of its own.
+        expected = <<~HEREDOC
+          test("raises with interactions") do
+
+            dep = mock
+            foo = Foo.new(dep); __ast_thunk_1__ = proc do
+
+
+            foo.explode; end
+
+
+            dep.expects(:foo).times(1); assert_raises(ExplosionError) do; __ast_thunk_1__.call; end; end
+        HEREDOC
+
+        assert_equal expected, transform(source)
       end
 
       test "test with interaction and &block forwarding" do
@@ -381,18 +464,19 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          test("block forwarding") {
-            my_proc = Proc.new {
-            }
-            dep = mock
-            dep.expects(:call_method).with("arg").times(1)
-            __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(dep, :call_method)
-            dep.call_method("arg", &my_proc)
-            assert_same(my_proc, __rspock_blk_0.call)
-          }
+          test("block forwarding") do
+
+            my_proc = Proc.new do; end
+            dep = mock; __ast_thunk_1__ = proc do
+
+
+            dep.call_method("arg", &my_proc); end
+
+
+            dep.expects(:call_method).with("arg").times(1); __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(dep, :call_method); __ast_thunk_1__.call; assert_same(my_proc, __rspock_blk_0.call); end
         HEREDOC
 
-        assert_equal strip_end_line(expected), transform(source)
+        assert_equal expected, transform(source)
       end
 
       test "test with multiple &block interactions" do
@@ -414,24 +498,22 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          test("multiple blocks") {
-            cb1 = Proc.new {
-            }
-            cb2 = Proc.new {
-            }
-            dep = mock
-            dep.expects(:method1).times(1)
-            __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(dep, :method1)
-            dep.expects(:method2).times(1)
-            __rspock_blk_1 = RSpock::Helpers::BlockCapture.capture(dep, :method2)
+          test("multiple blocks") do
+
+            cb1 = Proc.new do; end
+            cb2 = Proc.new do; end
+            dep = mock; __ast_thunk_1__ = proc do
+
+
             dep.method1(&cb1)
-            dep.method2(&cb2)
-            assert_same(cb1, __rspock_blk_0.call)
-            assert_same(cb2, __rspock_blk_1.call)
-          }
+            dep.method2(&cb2); end
+
+
+            dep.expects(:method1).times(1); __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(dep, :method1)
+            dep.expects(:method2).times(1); __rspock_blk_1 = RSpock::Helpers::BlockCapture.capture(dep, :method2); __ast_thunk_1__.call; assert_same(cb1, __rspock_blk_0.call); assert_same(cb2, __rspock_blk_1.call); end
         HEREDOC
 
-        assert_equal strip_end_line(expected), transform(source)
+        assert_equal expected, transform(source)
       end
 
       test "test with &block and >> return value" do
@@ -450,18 +532,19 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          test("block with return") {
-            my_proc = Proc.new {
-            }
-            dep = mock
-            dep.expects(:call_method).times(1).returns("result")
-            __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(dep, :call_method)
-            dep.call_method(&my_proc)
-            assert_same(my_proc, __rspock_blk_0.call)
-          }
+          test("block with return") do
+
+            my_proc = Proc.new do; end
+            dep = mock; __ast_thunk_1__ = proc do
+
+
+            dep.call_method(&my_proc); end
+
+
+            dep.expects(:call_method).times(1).returns("result"); __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(dep, :call_method); __ast_thunk_1__.call; assert_same(my_proc, __rspock_blk_0.call); end
         HEREDOC
 
-        assert_equal strip_end_line(expected), transform(source)
+        assert_equal expected, transform(source)
       end
 
       test "test with mixed interactions (with and without &block)" do
@@ -482,20 +565,21 @@ module RSpock
         HEREDOC
 
         expected = <<~HEREDOC
-          test("mixed interactions") {
-            my_proc = Proc.new {
-            }
-            dep = mock
-            dep.expects(:method1).with("arg").times(1)
-            dep.expects(:method2).times(1)
-            __rspock_blk_1 = RSpock::Helpers::BlockCapture.capture(dep, :method2)
+          test("mixed interactions") do
+
+            my_proc = Proc.new do; end
+            dep = mock; __ast_thunk_1__ = proc do
+
+
             dep.method1("arg")
-            dep.method2(&my_proc)
-            assert_same(my_proc, __rspock_blk_1.call)
-          }
+            dep.method2(&my_proc); end
+
+
+            dep.expects(:method1).with("arg").times(1)
+            dep.expects(:method2).times(1); __rspock_blk_1 = RSpock::Helpers::BlockCapture.capture(dep, :method2); __ast_thunk_1__.call; assert_same(my_proc, __rspock_blk_1.call); end
         HEREDOC
 
-        assert_equal strip_end_line(expected), transform(source)
+        assert_equal expected, transform(source)
       end
 
       private

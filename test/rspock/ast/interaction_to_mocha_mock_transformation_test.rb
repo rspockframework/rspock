@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 require 'test_helper'
-require 'string_helper'
 require 'rspock/ast/parser/interaction_parser'
 require 'rspock/ast/interaction_to_mocha_mock_transformation'
 
@@ -8,7 +7,6 @@ module RSpock
   module AST
     class InteractionToMochaMockTransformationTest < Minitest::Test
       extend RSpock::Declarative
-      include RSpock::Helpers::StringHelper
       include ASTTransform::TransformationHelper
 
       def setup
@@ -190,31 +188,24 @@ module RSpock
       end
 
       test "&block produces setup with expects and capture" do
-        ir_node = parse_to_ir('1 * receiver.message("arg", &my_proc)')
-        result = @transformation.run(ir_node)
-
-        source = Unparser.unparse(result)
-        assert_match(/receiver\.expects\(:message\)\.with\("arg"\)\.times\(1\)/, source)
-        assert_match(/RSpock::Helpers::BlockCapture\.capture\(receiver, :message\)/, source)
+        assert_transforms('1 * receiver.message("arg", &my_proc)', <<~RUBY)
+          receiver.expects(:message).with("arg").times(1)
+          __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(receiver, :message)
+        RUBY
       end
 
       test "&block without other args" do
-        ir_node = parse_to_ir('1 * receiver.message(&my_proc)')
-        result = @transformation.run(ir_node)
-
-        source = Unparser.unparse(result)
-        refute_match(/\.with\(/, source)
-        assert_match(/receiver\.expects\(:message\)\.times\(1\)/, source)
-        assert_match(/BlockCapture\.capture/, source)
+        assert_transforms('1 * receiver.message(&my_proc)', <<~RUBY)
+          receiver.expects(:message).times(1)
+          __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(receiver, :message)
+        RUBY
       end
 
       test "&block with >> produces returns and capture" do
-        ir_node = parse_to_ir('1 * receiver.message(&my_proc) >> "result"')
-        result = @transformation.run(ir_node)
-
-        source = Unparser.unparse(result)
-        assert_match(/\.returns\("result"\)/, source)
-        assert_match(/BlockCapture\.capture/, source)
+        assert_transforms('1 * receiver.message(&my_proc) >> "result"', <<~RUBY)
+          receiver.expects(:message).times(1).returns("result")
+          __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(receiver, :message)
+        RUBY
       end
 
       test "unique index produces unique capture variable names" do
@@ -223,8 +214,14 @@ module RSpock
         result0 = InteractionToMochaMockTransformation.new(0).run(ir_node)
         result1 = InteractionToMochaMockTransformation.new(1).run(ir_node)
 
-        assert_match(/__rspock_blk_0/, Unparser.unparse(result0))
-        assert_match(/__rspock_blk_1/, Unparser.unparse(result1))
+        assert_equal <<~RUBY, Unparser.unparse(result0)
+          receiver.expects(:message).times(1)
+          __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(receiver, :message)
+        RUBY
+        assert_equal <<~RUBY, Unparser.unparse(result1)
+          receiver.expects(:message).times(1)
+          __rspock_blk_1 = RSpock::Helpers::BlockCapture.capture(receiver, :message)
+        RUBY
       end
 
       test "non-interaction node is returned unchanged" do
@@ -247,7 +244,7 @@ module RSpock
       end
 
       def assert_transforms(source, expected)
-        assert_equal strip_end_line(expected + "\n"), transform(source)
+        assert_equal expected, transform(source)
       end
     end
   end

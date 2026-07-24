@@ -30,7 +30,9 @@ module RSpock
         result = chain_call(interaction.receiver, :expects, s(:sym, interaction.message))
         result = chain_call(result, :with, *interaction.args.children) if interaction.args
         result = build_cardinality(result, interaction.cardinality)
-        result = chain_call(result, OUTCOME_METHODS.fetch(interaction.outcome.type), *interaction.outcome.children) if interaction.outcome
+        if interaction.outcome
+          result = chain_call(result, OUTCOME_METHODS.fetch(interaction.outcome.type), *interaction.outcome.children)
+        end
 
         if interaction.block_pass
           build_block_capture_setup(result, interaction.receiver, interaction.message)
