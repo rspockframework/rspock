@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/rspockframework/ast-transform.git
-  revision: 0609d420d528e18c413aeac3ce52501a79c29a30
-  branch: jpd/line-aligned-emission
+  revision: 4eeb123dee9c96daa3e4df93397e1fef8eb405d6
+  branch: main
   specs:
     ast_transform (3.0.0)
       parser (>= 3.3)
