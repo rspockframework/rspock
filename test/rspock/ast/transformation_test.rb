@@ -74,6 +74,21 @@ module RSpock
         assert_equal "Test method @ tmp:1:1 must start with one of: Given, When, Expect", error.message
       end
 
+      test "test cannot end with a block that requires a successor" do
+        source = <<~HEREDOC
+          test "dangling When" do
+            When "stimulus with no Then"
+            1 + 1
+          end
+        HEREDOC
+
+        error = assert_raises RSpock::AST::Parser::BlockError do
+          transform(source)
+        end
+
+        assert_equal "Block When @ tmp:2:3 must be followed by one of these Blocks: [:Then]", error.message
+      end
+
       test "expect block can be followed by nothing" do
         source = <<~HEREDOC
           test "Adding \#{a} and \#{b} results in \#{c}" do
