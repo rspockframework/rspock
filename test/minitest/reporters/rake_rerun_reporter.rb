@@ -1,10 +1,10 @@
 # frozen_string_literal: true
+
 require 'minitest/reporters'
 
 module Minitest
   module Reporters
     class RakeRerunReporter < Minitest::Reporters::ProgressReporter
-
       def initialize(options = {})
         @rerun_user_prefix = options.fetch(:rerun_prefix, "")
         super

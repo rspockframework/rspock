@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'ast_transform/abstract_transformation'
 
 module RSpock

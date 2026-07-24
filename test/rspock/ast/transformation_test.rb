@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'test_helper'
 require 'transformation_helper'
 
@@ -17,7 +18,7 @@ module RSpock
       test "empty test block raises" do
         source = <<~HEREDOC
           test "Adding \#{a} and \#{b} results in \#{c}" do
-            
+          #{'  '}
           end
         HEREDOC
 
@@ -187,13 +188,13 @@ module RSpock
           )
         end
 
-        assert_equal "Block Block1 @ tmp:2:3 must be followed by one of these Blocks: #{[]}", error.message
+        assert_equal "Block Block1 @ tmp:2:3 must be followed by one of these Blocks: []", error.message
       end
 
       test "#run adds extend RSpock::Declarative when using Class.new" do
         source = <<~HEREDOC
           Potato = Class.new do
-            
+          #{'  '}
           end
         HEREDOC
 
@@ -207,7 +208,7 @@ module RSpock
       test "#run adds extend RSpock::Declarative when using traditional class definition" do
         source = <<~HEREDOC
           class Potato
-            
+          #{'  '}
           end
         HEREDOC
 
@@ -350,10 +351,10 @@ module RSpock
             Given
             dep = mock
             foo = Foo.new(dep)
-        
+
             When
             foo.foo
-        
+
             Then
             0 * dep.bar
             1 * dep.foo

@@ -6,3 +6,6 @@ commands:
   test:
     desc: Run this repo's tests
     run: bundle exec rake test
+  style:
+    desc: Run RuboCop
+    run: bundle exec rubocop

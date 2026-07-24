@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
@@ -20,15 +21,6 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
   spec.required_ruby_version = '>= 3.3'
-
-  # Development dependencies
-  spec.add_development_dependency "bundler", ">= 2.1"
-  spec.add_development_dependency "minitest", "~> 5.14"
-  spec.add_development_dependency "minitest-reporters", "~> 1.4"
-  spec.add_development_dependency "pry", ">= 0.14"
-  spec.add_development_dependency "pry-byebug", "~> 3.9"
-  spec.add_development_dependency "rake", "~> 13.0"
-  spec.add_development_dependency "simplecov", "~> 0.22"
 
   # Runtime dependencies
   # parser and unparser are used only through ast_transform, which owns their floors.

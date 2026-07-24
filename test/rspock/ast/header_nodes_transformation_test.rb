@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'test_helper'
 require 'transformation_helper'
 require 'rspock/ast/header_nodes_transformation'
@@ -13,18 +14,18 @@ module RSpock
         transformation = RSpock::AST::HeaderNodesTransformation.new([:a, :b, :c])
 
         ast = s(:begin,
-                s(:send, nil, :a),
-                s(:send, nil, :b),
-                s(:send, nil, :c),
-                s(:send, nil, :d))
+          s(:send, nil, :a),
+          s(:send, nil, :b),
+          s(:send, nil, :c),
+          s(:send, nil, :d))
 
         actual = transformation.run(ast)
 
         expected = s(:begin,
-                     s(:lvar, :a),
-                     s(:lvar, :b),
-                     s(:lvar, :c),
-                     s(:send, nil, :d))
+          s(:lvar, :a),
+          s(:lvar, :b),
+          s(:lvar, :c),
+          s(:send, nil, :d))
 
         assert_equal expected, actual
       end
@@ -33,10 +34,10 @@ module RSpock
         transformation = RSpock::AST::HeaderNodesTransformation.new([])
 
         ast = s(:begin,
-                s(:send, nil, :a),
-                s(:send, nil, :b),
-                s(:send, nil, :c),
-                s(:send, nil, :d))
+          s(:send, nil, :a),
+          s(:send, nil, :b),
+          s(:send, nil, :c),
+          s(:send, nil, :d))
 
         actual = transformation.run(ast)
 
@@ -47,10 +48,10 @@ module RSpock
         transformation = RSpock::AST::HeaderNodesTransformation.new(nil)
 
         ast = s(:begin,
-                s(:send, nil, :a),
-                s(:send, nil, :b),
-                s(:send, nil, :c),
-                s(:send, nil, :d))
+          s(:send, nil, :a),
+          s(:send, nil, :b),
+          s(:send, nil, :c),
+          s(:send, nil, :d))
 
         actual = transformation.run(ast)
 

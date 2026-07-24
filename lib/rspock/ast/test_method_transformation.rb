@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'ast_transform/abstract_transformation'
 require 'rspock/ast/node'
 require 'rspock/ast/statement_to_assertion_transformation'
@@ -212,7 +213,7 @@ module RSpock
             build_where_iterator(where.data_rows),
             build_where_args(where.header),
             test_def
-          )
+           )
         else
           anchored_at(method_call, s(:block,
             method_call,
@@ -233,9 +234,9 @@ module RSpock
           s(:send,
             s(:array, *data_rows.map { |row| build_where_data_row(row) }),
             :each,
-          ),
+           ),
           :with_index
-        )
+         )
       end
 
       def build_where_data_row(row)
@@ -251,7 +252,7 @@ module RSpock
         s(:args,
           s(:mlhs, *injected_args),
           s(:arg, TestMethodDefTransformation::ROW_INDEX_ARG),
-        )
+         )
       end
     end
   end

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'test_helper'
 require 'transformation_helper'
 require 'ast_transform/transformation_helper'
@@ -35,10 +36,10 @@ module RSpock
 
         test "#header separated by pipes returns each node's symbol" do
           @block << s(:send,
-                      s(:send,
-                        s(:send, nil, :a), :|, s(:send, nil, :b)
-                      ),
-                      :|, s(:send, nil, :c))
+            s(:send,
+              s(:send, nil, :a), :|, s(:send, nil, :b)
+            ),
+            :|, s(:send, nil, :c))
 
           assert_equal [:a, :b, :c], @block.header
         end
@@ -53,7 +54,7 @@ module RSpock
 
         test "#header terminal nodes must be header nodes" do
           @block << s(:send,
-                               s(:str, "potato"), :|, s(:send, nil, :b))
+            s(:str, "potato"), :|, s(:send, nil, :b))
 
           assert_raises RSpock::AST::Parser::WhereBlock::MalformedError do
             @block.header
@@ -104,7 +105,7 @@ module RSpock
           @block << s(:send, s(:send, s(:int, 2), :-, s(:int, 1)), :|, s(:int, 2))
 
           expected = [
-            [ s(:send, s(:int, 2), :-, s(:int, 1)), s(:int, 2)],
+            [s(:send, s(:int, 2), :-, s(:int, 1)), s(:int, 2)],
           ]
 
           assert_equal expected, @block.data

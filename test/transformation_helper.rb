@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'ast_transform/transformer'
 require 'ast_transform/transformation_helper'
 require 'string_helper'

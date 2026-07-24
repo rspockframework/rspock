@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'test_helper'
 require 'rspock/ast/parser/interaction_parser'
 require 'rspock/ast/interaction_to_block_identity_assertion_transformation'
