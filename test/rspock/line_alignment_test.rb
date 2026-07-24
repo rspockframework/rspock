@@ -5,20 +5,17 @@ require 'open3'
 require 'rspock/declarative'
 
 module RSpock
-  # Acceptance tests for line-aligned emission through the full RSpock
-  # transformation: raw line numbers — no Minitest plugin, no BacktraceFilter,
-  # no SourceMap — must already be source line numbers. When these are green,
+  # Acceptance tests for line-aligned emission through the full RSpock transformation: raw line numbers — no
+  # Minitest plugin, no BacktraceFilter, no SourceMap — must already be source line numbers. When these are green,
   # the whole mapping apparatus is deletable.
   #
-  # Counterpart of ast-transform's LineAlignmentTest; the fixtures exercise
-  # the RSpock dialect specifically (Then assertions, Where tables,
-  # interactions, Cleanup).
+  # Counterpart of ast-transform's LineAlignmentTest; the fixtures exercise the RSpock dialect specifically
+  # (Then assertions, Where tables, interactions, Cleanup).
   class LineAlignmentTest < ::Minitest::Test
     extend RSpock::Declarative
 
-    # Same env scrubbing rationale as BacktraceSourceMappingTest: children
-    # inherit bundler state pointing at rspock's Gemfile, and minitest's
-    # gem-scanning plugin discovery can activate a second minitest version.
+    # Same env scrubbing rationale as SourceTrueBacktraceTest: children inherit bundler state pointing at rspock's
+    # Gemfile, and minitest's gem-scanning plugin discovery can activate a second minitest version.
     CLEAN_ENV = {
       "RUBYOPT" => nil,
       "BUNDLE_GEMFILE" => nil,
@@ -88,11 +85,9 @@ module RSpock
           "(the row-isolation selector target)\n#{output}"
     end
 
-    # The interaction argument expression `Integer("boom")` raises when the
-    # Mocha expectation setup executes — pinning the line at which interaction
-    # setup runs. Today interactions are hoisted textually to the When
-    # position, so the raw line is a transformed one; aligned emission must
-    # keep the interaction's own source line while deferring the When body.
+    # The interaction argument expression `Integer("boom")` raises when the Mocha expectation setup executes —
+    # pinning the line at which interaction setup runs. The setup must execute at the interaction's own source line
+    # (the When body defers past it), not at the When position interactions used to hoist to.
     INTERACTION_FIXTURE = <<~RUBY
       transform!(RSpock::AST::Transformation)
       class InteractionFixtureTest < Minitest::Test
@@ -129,12 +124,10 @@ module RSpock
           "the interaction's source line\n#{output}"
     end
 
-    # When the Then block declares interactions, the When body is thunked
-    # past the Mocha setups — historically that hid `result` (a local first
-    # assigned inside the thunk's closure is closure-local), so reading it
-    # in Then raised NameError. The lowering now pre-declares thunked
-    # assignments at method scope; the expectation must fail as a plain
-    # assertion failure that can SEE the value.
+    # When the Then block declares interactions, the When body is thunked past the Mocha setups — historically that
+    # hid `result` (a local first assigned inside the thunk's closure is closure-local), so reading it in Then
+    # raised NameError. The lowering now pre-declares thunked assignments at method scope; the expectation must
+    # fail as a plain assertion failure that can SEE the value.
     WHEN_RESULT_FIXTURE = <<~RUBY
       transform!(RSpock::AST::Transformation)
       class WhenResultFixtureTest < Minitest::Test
@@ -201,9 +194,8 @@ module RSpock
         "the cleanup raise should cite its source line\n#{output}"
     end
 
-    # The compound of the two hazards above: Cleanup runs inside ensure, so it
-    # observes the When local BOTH after a failing Then AND with the When body
-    # deferred behind interaction setups. Historically this raised NameError
+    # The compound of the two hazards above: Cleanup runs inside ensure, so it observes the When local BOTH after
+    # a failing Then AND with the When body deferred behind interaction setups. Historically this raised NameError
     # inside ensure, masking the real failure.
     CLEANUP_WHEN_LOCAL_FIXTURE = <<~RUBY
       transform!(RSpock::AST::Transformation)
@@ -251,9 +243,8 @@ module RSpock
 
     private
 
-    # Runs +fixture_source+ in a subprocess with NO backtrace filtering of any
-    # kind: plugin discovery is off and the rspock plugin is never installed.
-    # Whatever line numbers appear in the output are the VM's raw truth.
+    # Runs +fixture_source+ in a subprocess with NO backtrace filtering of any kind: plugin discovery is off and
+    # the rspock plugin is never installed. Whatever line numbers appear in the output are the VM's raw truth.
     def run_fixture(file_name, fixture_source)
       Dir.mktmpdir do |tmpdir|
         dir = File.realpath(tmpdir)
