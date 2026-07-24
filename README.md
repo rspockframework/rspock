@@ -57,10 +57,6 @@ rakefile = "#{spec.gem_dir}/lib/Rakefile"
 load rakefile
 ```
 
-### Rails
-
-No Rails-specific setup is required. Backtraces and debuggers show correct source locations natively (see [Debugging](#debugging)), so there is no backtrace cleaner to configure.
-
 ## Usage
 
 Getting started using RSpock is extremely easy!
