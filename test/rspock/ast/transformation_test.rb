@@ -346,20 +346,20 @@ module RSpock
           end
         HEREDOC
 
-        # The When body is deferred (interactions must execute first) at its
-        # source position; each Mocha setup lands on its interaction's line.
+        # The When body is thunked (interactions must execute first) but keeps
+        # its source position; each Mocha setup lands on its interaction's line.
         expected = <<~HEREDOC
           test("interactions") do
 
           dep = mock
-          foo = Foo.new(dep); __ast_deferred_1__ = proc do
+          foo = Foo.new(dep); __ast_thunk_1__ = proc do
 
 
           foo.foo; end
 
 
           dep.expects(:bar).times(0)
-          dep.expects(:foo).times(1); __ast_deferred_1__.call; end
+          dep.expects(:foo).times(1); __ast_thunk_1__.call; end
         HEREDOC
 
         assert_equal expected, transform(source)
@@ -381,20 +381,20 @@ module RSpock
           end
         HEREDOC
 
-        # `result` is assigned inside the deferred proc; the lowering
+        # `result` is assigned inside the thunk's proc; the lowering
         # pre-declares it (`result = result`) at method scope so the
         # assertion after the execution point can read it.
         expected = <<~HEREDOC
           test("when result") do
 
           dep = mock
-          foo = Foo.new(dep); result = result; __ast_deferred_1__ = proc do
+          foo = Foo.new(dep); result = result; __ast_thunk_1__ = proc do
 
 
           result = foo.foo; end
 
 
-          dep.expects(:foo).times(1); __ast_deferred_1__.call
+          dep.expects(:foo).times(1); __ast_thunk_1__.call
           assert_equal(42, result); end
         HEREDOC
 
@@ -420,13 +420,13 @@ module RSpock
           test("block forwarding") do
 
           my_proc = Proc.new do; end
-          dep = mock; __ast_deferred_1__ = proc do
+          dep = mock; __ast_thunk_1__ = proc do
 
 
           dep.call_method("arg", &my_proc); end
 
 
-          dep.expects(:call_method).with("arg").times(1); __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(dep, :call_method); __ast_deferred_1__.call; assert_same(my_proc, __rspock_blk_0.call); end
+          dep.expects(:call_method).with("arg").times(1); __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(dep, :call_method); __ast_thunk_1__.call; assert_same(my_proc, __rspock_blk_0.call); end
         HEREDOC
 
         assert_equal expected, transform(source)
@@ -455,7 +455,7 @@ module RSpock
 
           cb1 = Proc.new do; end
           cb2 = Proc.new do; end
-          dep = mock; __ast_deferred_1__ = proc do
+          dep = mock; __ast_thunk_1__ = proc do
 
 
           dep.method1(&cb1)
@@ -463,7 +463,7 @@ module RSpock
 
 
           dep.expects(:method1).times(1); __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(dep, :method1)
-          dep.expects(:method2).times(1); __rspock_blk_1 = RSpock::Helpers::BlockCapture.capture(dep, :method2); __ast_deferred_1__.call; assert_same(cb1, __rspock_blk_0.call); assert_same(cb2, __rspock_blk_1.call); end
+          dep.expects(:method2).times(1); __rspock_blk_1 = RSpock::Helpers::BlockCapture.capture(dep, :method2); __ast_thunk_1__.call; assert_same(cb1, __rspock_blk_0.call); assert_same(cb2, __rspock_blk_1.call); end
         HEREDOC
 
         assert_equal expected, transform(source)
@@ -488,13 +488,13 @@ module RSpock
           test("block with return") do
 
           my_proc = Proc.new do; end
-          dep = mock; __ast_deferred_1__ = proc do
+          dep = mock; __ast_thunk_1__ = proc do
 
 
           dep.call_method(&my_proc); end
 
 
-          dep.expects(:call_method).times(1).returns("result"); __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(dep, :call_method); __ast_deferred_1__.call; assert_same(my_proc, __rspock_blk_0.call); end
+          dep.expects(:call_method).times(1).returns("result"); __rspock_blk_0 = RSpock::Helpers::BlockCapture.capture(dep, :call_method); __ast_thunk_1__.call; assert_same(my_proc, __rspock_blk_0.call); end
         HEREDOC
 
         assert_equal expected, transform(source)
@@ -521,7 +521,7 @@ module RSpock
           test("mixed interactions") do
 
           my_proc = Proc.new do; end
-          dep = mock; __ast_deferred_1__ = proc do
+          dep = mock; __ast_thunk_1__ = proc do
 
 
           dep.method1("arg")
@@ -529,7 +529,7 @@ module RSpock
 
 
           dep.expects(:method1).with("arg").times(1)
-          dep.expects(:method2).times(1); __rspock_blk_1 = RSpock::Helpers::BlockCapture.capture(dep, :method2); __ast_deferred_1__.call; assert_same(my_proc, __rspock_blk_1.call); end
+          dep.expects(:method2).times(1); __rspock_blk_1 = RSpock::Helpers::BlockCapture.capture(dep, :method2); __ast_thunk_1__.call; assert_same(my_proc, __rspock_blk_1.call); end
         HEREDOC
 
         assert_equal expected, transform(source)

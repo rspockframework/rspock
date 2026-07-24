@@ -129,10 +129,10 @@ module RSpock
           "the interaction's source line\n#{output}"
     end
 
-    # When the Then block declares interactions, the When body is deferred
+    # When the Then block declares interactions, the When body is thunked
     # past the Mocha setups — historically that hid `result` (a local first
-    # assigned inside the deferral closure is closure-local), so reading it
-    # in Then raised NameError. The lowering now pre-declares deferred
+    # assigned inside the thunk's closure is closure-local), so reading it
+    # in Then raised NameError. The lowering now pre-declares thunked
     # assignments at method scope; the expectation must fail as a plain
     # assertion failure that can SEE the value.
     WHEN_RESULT_FIXTURE = <<~RUBY

@@ -38,8 +38,8 @@ module RSpock
       # Statements are assembled in SOURCE order so line-aligned emission keeps
       # each one on its own line. Execution-order requirements that source
       # order cannot express (interaction setups in Then must run before the
-      # When body they observe) are carried by ast-transform's deferral
-      # facility (run_after / defer) instead of by textual hoisting.
+      # When body they observe) are carried by ast-transform's thunk facility
+      # (run_after / thunk) instead of by textual hoisting.
       def build_test_body(body_node)
         blocks = body_node.children
         sections = blocks.map { |block_node| transform_block(block_node) }
@@ -77,7 +77,7 @@ module RSpock
       # identity assertion for &block forwarding), statements become assertions
       # at their own lines.
       #
-      # Within the section, ALL setups come before all assertions: the deferred
+      # Within the section, ALL setups come before all assertions: the thunked
       # When body executes right after the last setup, and every assertion
       # (identity or otherwise) observes the When body's effects, so none may
       # precede that point. Setups keep source order and their anchors, so
@@ -118,13 +118,13 @@ module RSpock
       end
 
       # Reorders execution (not text) where required:
-      # - interactions without raises: defer the When body until after the last
+      # - interactions without raises: run the When body after the last
       #   interaction setup (run_after — the paved road).
       # - raises without interactions: the When body inlines directly into
-      #   assert_raises; no deferral needed.
-      # - raises with interactions: the When body is deferred at its source
-      #   position and its execution composes into the assert_raises block after
-      #   the last setup (low-level defer).
+      #   assert_raises; no thunk needed.
+      # - raises with interactions: the When body is thunked into the
+      #   assert_raises block inserted after the last setup; the lowering
+      #   re-emits the body at its own source lines.
       def order_execution(source_order, when_statements, interaction_setups, raises_node)
         if raises_node
           build_raises_body(source_order, when_statements, interaction_setups, raises_node)
@@ -137,10 +137,9 @@ module RSpock
 
       def build_raises_body(source_order, when_statements, interaction_setups, raises_node)
         if interaction_setups.any?
-          deferral = defer(*when_statements)
-          assertion = build_assert_raises(raises_node, deferral.execution)
+          assertion = build_assert_raises(raises_node, thunk(*when_statements))
 
-          reordered = replace_run(source_order, when_statements, [deferral.placement])
+          reordered = replace_run(source_order, when_statements, [])
           insert_after(reordered, interaction_setups.last, assertion)
         else
           when_body = when_statements.length == 1 ? when_statements[0] : s(:begin, *when_statements)
@@ -176,7 +175,7 @@ module RSpock
           .flat_map { |_block_node, section| section.statements }
       end
 
-      # --- Identity-based sequence edits (non-deferral counterparts of run_after) ---
+      # --- Identity-based sequence edits (non-thunk counterparts of run_after) ---
 
       def replace_run(statements, run, replacement)
         start = statements.index { |statement| statement.equal?(run.first) }
