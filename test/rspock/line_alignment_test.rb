@@ -3,16 +3,23 @@ require 'test_helper'
 require 'tmpdir'
 require 'open3'
 require 'rspock/declarative'
+require 'ast_transform/testing/assertions'
+require 'ast_transform/transformation'
 
 module RSpock
   # Acceptance tests for line-aligned emission through the full RSpock transformation: raw line numbers — no
   # Minitest plugin, no BacktraceFilter, no SourceMap — must already be source line numbers. When these are green,
   # the whole mapping apparatus is deletable.
   #
-  # Counterpart of ast-transform's LineAlignmentTest; the fixtures exercise the RSpock dialect specifically
-  # (Then assertions, Where tables, interactions, Cleanup).
+  # Two layers per dialect fixture (Then assertions, Where tables, interactions, Cleanup):
+  #
+  # - Static: assert_line_aligned (ASTTransform::Testing::Assertions) pins every surviving statement to its source
+  #   line through the same annotation pipeline the install hook runs — in-process and cheap.
+  # - Runtime: a subprocess Minitest run pins behavior only execution can prove (failure vs error counts,
+  #   test-name embedding, ensure-time Cleanup output, locals visibility).
   class LineAlignmentTest < ::Minitest::Test
     extend RSpock::Declarative
+    include ASTTransform::Testing::Assertions
 
     # Same env scrubbing rationale as SourceTrueBacktraceTest: children inherit bundler state pointing at rspock's
     # Gemfile, and minitest's gem-scanning plugin discovery can activate a second minitest version.
@@ -40,12 +47,10 @@ module RSpock
       end
     RUBY
 
-    test "Then assertion failure cites the statement's source line, raw" do
-      output = run_fixture("then_fixture_test.rb", THEN_FIXTURE)
-      assertion_line = line_number_of(THEN_FIXTURE, "doubled == 999")
-
-      assert_includes output, "test/then_fixture_test.rb:#{assertion_line}",
-        "raw failure output should cite the assertion's source line\n#{output}"
+    # Runtime citation of the Then line is pinned end-to-end by SourceTrueBacktraceTest; here the static check
+    # suffices.
+    test "the Then fixture is line-aligned through the full pipeline" do
+      assert_line_aligned(THEN_FIXTURE, ASTTransform::Transformation.new, path: 'then_fixture_test.rb')
     end
 
     WHERE_FIXTURE = <<~RUBY
@@ -65,6 +70,10 @@ module RSpock
         end
       end
     RUBY
+
+    test "the Where fixture is line-aligned through the full pipeline" do
+      assert_line_aligned(WHERE_FIXTURE, ASTTransform::Transformation.new, path: 'where_fixture_test.rb')
+    end
 
     test "failing Where row cites the failing statement's source line, raw" do
       output = run_fixture("where_fixture_test.rb", WHERE_FIXTURE)
@@ -115,6 +124,10 @@ module RSpock
       end
     RUBY
 
+    test "the interaction fixture is line-aligned through the full pipeline" do
+      assert_line_aligned(INTERACTION_FIXTURE, ASTTransform::Transformation.new, path: 'interaction_fixture_test.rb')
+    end
+
     test "interaction setup execution is observed at the interaction's own source line, raw" do
       output = run_fixture("interaction_fixture_test.rb", INTERACTION_FIXTURE)
       interaction_line = line_number_of(INTERACTION_FIXTURE, "1 * dep.ping")
@@ -157,6 +170,10 @@ module RSpock
       end
     RUBY
 
+    test "the deferred-When fixture is line-aligned through the full pipeline" do
+      assert_line_aligned(WHEN_RESULT_FIXTURE, ASTTransform::Transformation.new, path: 'when_result_fixture_test.rb')
+    end
+
     test "a When-assigned local is readable in Then despite interaction deferral, raw" do
       output = run_fixture("when_result_fixture_test.rb", WHEN_RESULT_FIXTURE)
       assertion_line = line_number_of(WHEN_RESULT_FIXTURE, "result == 999")
@@ -185,6 +202,10 @@ module RSpock
         end
       end
     RUBY
+
+    test "the Cleanup fixture is line-aligned through the full pipeline" do
+      assert_line_aligned(CLEANUP_FIXTURE, ASTTransform::Transformation.new, path: 'cleanup_fixture_test.rb')
+    end
 
     test "Cleanup-block failure cites the cleanup statement's source line, raw" do
       output = run_fixture("cleanup_fixture_test.rb", CLEANUP_FIXTURE)
