@@ -35,8 +35,8 @@ module RSpock
         def parse(node)
           return node unless interaction_node?(node)
 
-          # Anchor at the full interaction expression (including >> outcome), so
-          # the Mocha setup it lowers into is emitted at the interaction's line.
+          # Anchor at the full interaction expression (including >> outcome), so the Mocha setup it lowers into is
+          # emitted at the interaction's line.
           anchor = node
 
           if return_value_node?(node)
@@ -108,8 +108,8 @@ module RSpock
 
         def parse_rhs(node)
           if node.type == :block
-            raise InteractionError, "Inline blocks (do...end / { }) are not supported in interactions @ #{range(node)}. " \
-              "Use &var for block forwarding verification, or << for method body override (future)."
+            raise InteractionError, "Inline blocks (do...end / { }) are not supported in interactions " \
+              "@ #{range(node)}. Use &var for block forwarding verification, or << for method body override (future)."
           end
 
           if node.type != :send

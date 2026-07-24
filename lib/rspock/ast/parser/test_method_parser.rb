@@ -75,7 +75,8 @@ module RSpock
           end
 
           unless blocks.last.can_end?
-            raise BlockError, "Block #{blocks.last.type} @ #{blocks.last.range} must be followed by one of these Blocks: #{blocks.last.successors}"
+            raise BlockError, "Block #{blocks.last.type} @ #{blocks.last.range} " \
+              "must be followed by one of these Blocks: #{blocks.last.successors}"
           end
         end
 

@@ -35,11 +35,10 @@ module RSpock
 
       # --- Test body assembly ---
       #
-      # Statements are assembled in SOURCE order so line-aligned emission keeps
-      # each one on its own line. Execution-order requirements that source
-      # order cannot express (interaction setups in Then must run before the
-      # When body they observe) are carried by ast-transform's thunk facility
-      # (run_after / thunk) instead of by textual hoisting.
+      # Statements are assembled in SOURCE order so line-aligned emission keeps each one on its own line.
+      # Execution-order requirements that source order cannot express (interaction setups in Then must run before the
+      # When body they observe) are carried by ast-transform's thunk facility (run_after / thunk) instead of by
+      # textual hoisting.
       def build_test_body(body_node)
         blocks = body_node.children
         sections = blocks.map { |block_node| transform_block(block_node) }
@@ -72,18 +71,15 @@ module RSpock
         end
       end
 
-      # Then/Expect children become plain Ruby in place: interactions lower to
-      # Mocha setups anchored at the interaction's own source line (plus an
-      # identity assertion for &block forwarding), statements become assertions
-      # at their own lines.
+      # Then/Expect children become plain Ruby in place: interactions lower to Mocha setups anchored at the
+      # interaction's own source line (plus an identity assertion for &block forwarding), statements become
+      # assertions at their own lines.
       #
-      # Within the section, ALL setups come before all assertions: the thunked
-      # When body executes right after the last setup, and every assertion
-      # (identity or otherwise) observes the When body's effects, so none may
-      # precede that point. Setups keep source order and their anchors, so
-      # alignment holds; assertions after them are either synthetic (identity
-      # assertions, loc-less, pack anywhere) or textually below the
-      # interactions in the common case.
+      # Within the section, ALL setups come before all assertions: the thunked When body executes right after the
+      # last setup, and every assertion (identity or otherwise) observes the When body's effects, so none may
+      # precede that point. Setups keep source order and their anchors, so alignment holds; assertions after them
+      # are either synthetic (identity assertions, loc-less, pack anywhere) or textually below the interactions in
+      # the common case.
       def transform_assertion_block(block_node)
         setups = []
         assertions = []
@@ -118,13 +114,11 @@ module RSpock
       end
 
       # Reorders execution (not text) where required:
-      # - interactions without raises: run the When body after the last
-      #   interaction setup (run_after — the paved road).
-      # - raises without interactions: the When body inlines directly into
-      #   assert_raises; no thunk needed.
-      # - raises with interactions: the When body is thunked into the
-      #   assert_raises block inserted after the last setup; the lowering
-      #   re-emits the body at its own source lines.
+      # - interactions without raises: run the When body after the last interaction setup (run_after — the paved
+      #   road).
+      # - raises without interactions: the When body inlines directly into assert_raises; no thunk needed.
+      # - raises with interactions: the When body is thunked into the assert_raises block inserted after the last
+      #   setup; the lowering re-emits the body at its own source lines.
       def order_execution(source_order, when_statements, interaction_setups, raises_node)
         if raises_node
           build_raises_body(source_order, when_statements, interaction_setups, raises_node)
@@ -195,8 +189,8 @@ module RSpock
         result
       end
 
-      # Re-anchors +node+ at +anchor+'s source location so emission places it
-      # on the anchor's line. No-op for anchors without locations.
+      # Re-anchors +node+ at +anchor+'s source location so emission places it on the anchor's line.
+      # No-op for anchors without locations.
       def anchored_at(anchor, node)
         return node unless anchor.loc&.expression
 
@@ -230,11 +224,9 @@ module RSpock
 
       # --- Where block helpers ---
       #
-      # Each data row carries its source line as a trailing element, surfaced
-      # in the generated test NAME only (uniqueness for identical rows + the -n
-      # selector target) through internal block parameters. There is no
-      # user-facing runtime variable: isolate a row by running its generated
-      # test by name, then break normally.
+      # Each data row carries its source line as a trailing element, surfaced in the generated test NAME only
+      # (uniqueness for identical rows + the -n selector target) through internal block parameters. There is no
+      # user-facing runtime variable: isolate a row by running its generated test by name, then break normally.
 
       def build_where_iterator(data_rows)
         s(:send,

@@ -62,8 +62,8 @@ module RSpock
             BINARY_OPERATORS.include?(node.children[1])
         end
 
-        # RSpock IR nodes are anchored at the statement they classify, so the
-        # assertions they lower into are emitted at the statement's source line.
+        # RSpock IR nodes are anchored at the statement they classify, so the assertions they lower into are
+        # emitted at the statement's source line.
         def build_binary_statement(node)
           s_anchored(node, :rspock_binary_statement, node.children[0], s(:sym, node.children[1]), node.children[2])
         end

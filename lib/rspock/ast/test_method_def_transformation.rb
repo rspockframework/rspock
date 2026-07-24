@@ -4,12 +4,10 @@ require 'rspock/ast/test_method_dstr_transformation'
 
 module RSpock
   module AST
-    # Appends the data row's index and source line to a Where-driven test's
-    # name. The values arrive through internal block parameters on the row
-    # iterator (see TestMethodTransformation#build_where_args) and surface in
-    # the test NAME only: the name is what makes identical data rows unique and
-    # what the -n selector matches to isolate a row. They are deliberately not
-    # exposed as test-scope variables.
+    # Appends the data row's index and source line to a Where-driven test's name. The values arrive through
+    # internal block parameters on the row iterator (see TestMethodTransformation#build_where_args) and surface in
+    # the test NAME only: the name is what makes identical data rows unique and what the -n selector matches to
+    # isolate a row. They are deliberately not exposed as test-scope variables.
     class TestMethodDefTransformation < ASTTransform::AbstractTransformation
       ROW_INDEX_ARG = :__rspock_row_index__
       ROW_LINE_ARG = :__rspock_row_line__

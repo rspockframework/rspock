@@ -3,11 +3,10 @@ require 'ast_transform/node'
 
 module RSpock
   module AST
-    # RSpock's intermediate representation: custom node types registered on
-    # ASTTransform::Node, so +s(:rspock_*, ...)+ constructs these classes with
-    # their domain accessors. They exist only between the parser and
-    # TestMethodTransformation — the transformation lowers every one of them
-    # to plain Ruby nodes before emission.
+    # RSpock's intermediate representation: custom node types registered on ASTTransform::Node, so
+    # +s(:rspock_*, ...)+ constructs these classes with their domain accessors. They exist only between the parser
+    # and TestMethodTransformation — the transformation lowers every one of them to plain Ruby nodes before
+    # emission.
     class TestNode < ASTTransform::Node
       register :rspock_test
 

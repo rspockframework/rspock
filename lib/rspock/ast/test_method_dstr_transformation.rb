@@ -3,8 +3,8 @@ require 'ast_transform/abstract_transformation'
 
 module RSpock
   module AST
-    # dstr counterpart of TestMethodDefTransformation: appends the row index
-    # and source line interpolations to an already-interpolated test name.
+    # dstr counterpart of TestMethodDefTransformation: appends the row index and source line interpolations to an
+    # already-interpolated test name.
     class TestMethodDstrTransformation < ASTTransform::AbstractTransformation
       ROW_INDEX_AST = s(:begin, s(:lvar, :__rspock_row_index__))
       ROW_LINE_AST = s(:begin, s(:lvar, :__rspock_row_line__))

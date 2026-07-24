@@ -16,7 +16,8 @@ module Minitest
 
         puts
         puts
-        puts yellow("You can rerun failed/error test by commands (you can add rerun prefix with 'rerun_prefix' option):")
+        puts yellow("You can rerun failed/error test by commands " \
+          "(you can add rerun prefix with 'rerun_prefix' option):")
         print_rerun_command(test)
         puts
       end
