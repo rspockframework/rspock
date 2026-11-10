@@ -1,3 +1,4 @@
+# typed: false
 # frozen_string_literal: true
 
 # Toolchain-only manifest for d3mlabs' dev tool: it provisions this exact

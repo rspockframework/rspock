@@ -1,3 +1,4 @@
+# typed: false
 # frozen_string_literal: true
 
 require 'ast_transform/node'
@@ -11,9 +12,17 @@ module RSpock
     class TestNode < ASTTransform::Node
       register :rspock_test
 
-      def def_node   = children[0]
-      def body_node  = children[1]
-      def where_node = children[2]
+      def def_node
+        children[0]
+      end
+
+      def body_node
+        children[1]
+      end
+
+      def where_node
+        children[2]
+      end
     end
 
     class BodyNode < ASTTransform::Node
@@ -23,8 +32,13 @@ module RSpock
     class DefNode < ASTTransform::Node
       register :rspock_def
 
-      def method_call = children[0]
-      def args        = children[1]
+      def method_call
+        children[0]
+      end
+
+      def args
+        children[1]
+      end
     end
 
     class GivenNode < ASTTransform::Node
@@ -76,36 +90,77 @@ module RSpock
     class RaisesNode < ASTTransform::Node
       register :rspock_raises
 
-      def exception_class = children[0]
-      def capture_var     = children[1]
-      def capture_name    = capture_var&.children&.[](0)
+      def exception_class
+        children[0]
+      end
+
+      def capture_var
+        children[1]
+      end
+
+      def capture_name
+        capture_var&.children&.[](0)
+      end
     end
 
     class InteractionNode < ASTTransform::Node
       register :rspock_interaction
 
-      def cardinality  = children[0]
-      def receiver     = children[1]
-      def message_sym  = children[2]
-      def message      = message_sym.children[0]
-      def args         = children[3]
-      def outcome      = children[4]
-      def block_pass   = children[5]
+      def cardinality
+        children[0]
+      end
+
+      def receiver
+        children[1]
+      end
+
+      def message_sym
+        children[2]
+      end
+
+      def message
+        message_sym.children[0]
+      end
+
+      def args
+        children[3]
+      end
+
+      def outcome
+        children[4]
+      end
+
+      def block_pass
+        children[5]
+      end
     end
 
     class BinaryStatementNode < ASTTransform::Node
       register :rspock_binary_statement
 
-      def lhs      = children[0]
-      def operator = children[1]
-      def rhs      = children[2]
+      def lhs
+        children[0]
+      end
+
+      def operator
+        children[1]
+      end
+
+      def rhs
+        children[2]
+      end
     end
 
     class StatementNode < ASTTransform::Node
       register :rspock_statement
 
-      def expression = children[0]
-      def source     = children[1]
+      def expression
+        children[0]
+      end
+
+      def source
+        children[1]
+      end
     end
   end
 end
