@@ -14,5 +14,5 @@ gem "minitest-reporters", "~> 1.4"
 gem "pry", ">= 0.14"
 gem "pry-byebug", "~> 3.9"
 gem "rake", "~> 13.0"
-gem "rubocop-shopify", "~> 3.0", require: false
+gem "rubocop-d3mlabs", "~> 1.0", require: false
 gem "simplecov", "~> 0.22"
